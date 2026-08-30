@@ -1,0 +1,274 @@
+:root {
+    --primary: #3F3C8D;
+    --secondary: #2F2C6D;
+    --accent: #6C63FF;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --danger: #E74C3C;
+    --bg: #F4F6FA;
+    --text: #1F2937;
+    --white: #ffffff;
+    --gray: #64748b;
+}
+
+/* --- RESET & BASE --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+/* --- BOUTONS D'ACTION (MODIFIÉ ICI) --- */
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+/* Suppression de flex-direction: column pour aligner icône à gauche et texte à droite */
+/* .btn-action {
+    padding: 15px;
+    height: auto;
+    color: white;
+    justify-content: center;
+} */
+
+.btn-sos {
+    background: var(--danger);
+}
+
+.btn-incognito {
+    background: var(--secondary);
+}
+
+.btn-ai {
+    background: var(--accent);
+}
+
+.btn-offline {
+    background: var(--primary);
+}
+
+/* --- TABLEAUX (STYLE ÉPURÉ) --- */
+.card-tableau {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.card-header {
+    padding: 20px;
+    border-bottom: 1px solid #f1f5f9;
+    background: white;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Pour mobile */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+th {
+    background: #F8FAFC;
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--gray);
+    letter-spacing: 0.5px;
+}
+
+td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-warn {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* --- STRUCTURE ARTICLE (MÉDIA STYLE) --- */
+.article-page {
+    display: block;
+    background: var(--white);
+    border-radius: 12px;
+    max-width: 1200px;
+    margin: 0 auto;
+    max-height: 100vh;
+    overflow-y: scroll;
+}
+
+.article-page.active {
+    display: block;
+}
+
+/* 1. Header Hero */
+.article-hero {
+    padding: 40px;
+    background: #f8fafc;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.breadcrumb {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-bottom: 15px;
+}
+
+.cat-badge {
+    background: var(--accent);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.article-h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    color: var(--secondary);
+}
+
+.meta-data {
+    display: flex;
+    gap: 20px;
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+.hero-img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+/* 2. Content & 3. Sidebar Layout */
+.article-layout {
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+    padding: 40px;
+}
+
+.content-area {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #334155;
+}
+
+.content-area h2 {
+    margin: 30px 0 15px;
+    color: var(--primary);
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.side-widget {
+    background: var(--bg);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* 4. Engagement & 5. Commentaires */
+.engagement-zone {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.share-btns {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.author-bio {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #f1f5f9;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.comment-item {
+    margin-top: 20px;
+    padding: 15px;
+    border-left: 3px solid var(--accent);
+    background: #fafafa;
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+    .article-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        order: 2;
+    }
+
+    .article-h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero-img {
+        height: 250px;
+    }
+
+    .meta-data {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    /* Cache le texte des boutons nav sur petit écran */
+}
