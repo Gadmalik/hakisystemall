@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-export function MiniLoader() {
-    return <i className="fas fa-spinner fa-pulse fa-fw"></i>
+export function MiniLoader({color="#000", size=16}) {
+    return <i className="fas fa-spinner fa-pulse fa-fw" style={{color:color, fontSize:`${size}px`}}></i>
 }
 
 export function Loader(){

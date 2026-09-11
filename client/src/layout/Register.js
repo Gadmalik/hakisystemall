@@ -196,7 +196,7 @@ export function Register () {
         setLoaderVisible(true);
         try {
             const response = await fetch(`${link}/user/code`, {
-                method: "POST",
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -255,7 +255,7 @@ export function Register () {
         setLoaderVisible(true);
         try {
             const response = await fetch(`${link}/user/mdp`, {
-                method: "POST",
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },

@@ -9,6 +9,7 @@ export function UtilisateursOrg() {
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
+    const [categorieUtilisateur, setCategorieUtilisateur] = useState([]);
     const [loaderVisible, setLoaderVisible] = useState(false);
     const [error, setError] = useState("");
     const link = process.env.REACT_APP_LINK;
@@ -17,19 +18,33 @@ export function UtilisateursOrg() {
 
     const fetchUsers = async () => {
         try {
-            await fetch(`${link}/users`).then((response) => response.json()).then((data) => {
+            await fetch(`${link}/users/${user.organisationid}`).then((response) => response.json()).then((data) => {
                 console.log(data);
-                if(JSON.stringify(data.data) != JSON.stringify(users)){
+                if(data.success){
                     setUsers(data.data);
-                }else{
-                // console.log(data.data);
                 }
             });
         } catch (error) {
             console.log(error);
         }
     }
-    fetchUsers();
+    
+    const loadCategorieUtilisateurs = async () => {
+        setLoaderVisible(true)
+        try {
+            await fetch(`${link}/getcategorieutilisateurorg/${user.organisationid}`).then((response) => response.json()).then((data) => {
+                console.log(data, user.organisationid)
+                if(data.success){
+                    setCategorieUtilisateur(data.data);
+                }
+                setLoaderVisible(false)
+            });
+        } catch (error) {
+            console.log(error);
+            setLoaderVisible(false)
+        }
+    }
+
     const handleCheckboxChange = (e, userId) => {
         if (e.target.checked) {
             setSelectedUsers([...selectedUsers, userId]);
@@ -64,6 +79,7 @@ export function UtilisateursOrg() {
     }
     useEffect(() => {
         fetchUsers();
+        loadCategorieUtilisateurs();
     }, [])
     useEffect(() => {
         setFilteredUsers(users);
@@ -79,7 +95,7 @@ export function UtilisateursOrg() {
         <>
             <Header title={"Utilisateurs"} searchFunction={searchUser} />
             <Modal 
-                data={{form:"formuser"}}
+                data={{form:"formuser", categories: categorieUtilisateur }}
                 title={"Ajouter un utilisateur"}
                 setVisible={setVisibleModal}
                 visible={visibleModal}
@@ -99,7 +115,7 @@ export function UtilisateursOrg() {
                             <thead>
                                 <tr>
                                     <th></th>
-                                    <th>Nom</th>
+                                    <th>Noms</th>
                                     <th>Categorie</th>
                                     <th>Adresse</th>
                                     <th>Status</th>

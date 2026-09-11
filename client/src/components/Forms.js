@@ -14,52 +14,116 @@ const countryList = countries.getNames("fr", { select: "official" });
 
 const link = process.env.REACT_APP_LINK;
 export function FormUser({data, hideModal}){
+    const [user, setUser] = useState({
+        nom: data?.nom,
+        prenom: data?.prenom,
+        telephone: data?.telephone,
+        email: data?.email,
+        mdp: data?.mdp,
+        confirm_mdp: data?.confirm_mdp,
+        nom_utilisateur: data?.nom_utilisateur,
+        categorie: data?.categorie,
+        adresse: data?.adresse,
+    });
+    const [userinfo, setUserinfo] = useState(JSON.parse(localStorage.getItem("userinfo")));
+    const [categorieUtilisateur, setCategorieUtilisateur] = useState([]);
+    const [loaderVisible, setLoaderVisible] = useState(false);
+    const [error, setError] = useState({});
+
+    const ajouterUser = async (event) => {
+        event.preventDefault();
+        const newErrors = {};
+        if (!user.nom.trim()) newErrors.nom = "Le nom est requis";
+        if (!user.prenom.trim()) newErrors.prenom = "Le prénom est requis";
+        if (!user.telephone.trim()) newErrors.telephone = "Le téléphone est requis";
+        if (!user.email.trim()) newErrors.email = "L'email est requis";
+        if (!user.nom_utilisateur.trim()) newErrors.nom_utilisateur = "Le nom d'utilisateur est requis";
+        if (!user.categorie.trim()) newErrors.categorie = "La catégorie est requise";
+        if (!user.adresse.trim()) newErrors.adresse = "L'adresse est requise";
+
+        if (user.nom_utilisateur.trim() && user.nom_utilisateur.includes(" ")) {
+            newErrors.nom_utilisateur = "Le nom d'utilisateur ne peut pas contenir d'espace";
+        }
+        if (Object.keys(newErrors).length > 0) {
+            setError(newErrors);
+            return;
+        }
+
+        setError({});
+        setLoaderVisible(true);
+        try {
+            const response = await fetch(`${link}/user/${userinfo.organisationid}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    nom: user.nom,
+                    prenom: user.prenom,
+                    phone: user.telephone,
+                    email: user.email,
+                    username: user.nom_utilisateur,
+                    categorie: user.categorie,
+                    adresse: user.adresse,
+                }),
+            });
+
+            const data = await response.json();
+            console.log(data);
+
+            if (data.status === "success") {
+                alert(data.message);
+                hideModal();
+            } else {
+                const serverErrors = { message: data.message };
+
+                if (data.code === 'username_used') {
+                    serverErrors.nom_utilisateur = "Le nom d'utilisateur est déjà utilisé";
+                    setUser(prev => ({ ...prev, nom_utilisateur: "" }));
+                } else if (data.code === 'email_used') {
+                    serverErrors.email = "L'email est déjà utilisé";
+                    setUser(prev => ({ ...prev, email: "" }));
+                } else if (data.code === 'phone_used') {
+                    serverErrors.telephone = "Le numéro de téléphone est déjà utilisé";
+                    setUser(prev => ({ ...prev, telephone: "" }));
+                }
+
+                setError(serverErrors);
+            }
+        } catch (err) {
+            console.error(err);
+            setError({ global: "Une erreur s'est produite" });
+            
+            setTimeout(() => {
+                setError({});
+            }, 8000);
+        }
+        setLoaderVisible(false);
+    }
+
+    useEffect(() => {
+        setCategorieUtilisateur(data?.categories || [] );
+    }, [data]);
     return (
-        <form id="userForm">
+        <form id="userForm" onSubmit={(event) => ajouterUser(event)}>
+            <p class="modal-subtitle">Tous les champs marqués d'un <span class="required">*</span> sont obligatoires.</p>
             <div class="modal-form-grid">
-                <div class="modal-form-group required">
-                    <label>Noms complets</label>
-                    <input type="text" placeholder="Marie Curie" required/>
-                </div>
+                <InputForm value={user.nom} onchange={(value) => setUser({...user, nom: value})} placeholder="Ex: Curie" type="text" label="Nom" id="nom" require={true} error={error.nom} icon="user"/>
                 
-                <div class="modal-form-group required">
-                    <label>Téléphone</label>
-                    <input type="tel" placeholder="+243 81 234 5678" required/>
-                </div>
+                <InputForm value={user.prenom} onchange={(value) => setUser({...user, prenom: value})} placeholder="Ex: Marie" type="text" label="Prenom" id="prenom" require={true} error={error.prenom} icon="user"/>
                 
-                <div class="modal-form-group required">
-                    <label>Email</label>
-                    <input type="email" placeholder="marie.curie@example.com" required/>
-                </div>
+                <InputForm value={user.telephone} onchange={(value) => setUser({...user, telephone: value})} placeholder="Ex: 243 812 345 678" type="tel" label="Téléphone" id="telephone" require={true} error={error.telephone} icon="phone"/>
                 
-                <div class="modal-form-group required">
-                    <label>Mot de passe</label>
-                    <input type="password" placeholder="Minimum 8 caractères" required/>
-                </div>
+                <InputForm value={user.email} onchange={(value) => setUser({...user, email: value})} placeholder="Ex: marie.curie@example.com" type="email" label="Email" id="email" require={true} error={error.email} icon="envelope"/>
                 
-                <div class="modal-form-group required">
-                    <label>Code d'accès</label>
-                    <input type="text" placeholder="USER-2024-001" required/>
-                </div>
+                <InputForm value={user.nom_utilisateur} onchange={(value) => setUser({...user, nom_utilisateur: value})} placeholder="Ex: mariecurie" type="text" label="Nom d'utilisateur" id="nom_utilisateur" require={true} error={error.nom_utilisateur} icon="user"/>
                 
-                <div class="modal-form-group required">
-                    <label>Catégorie</label>
-                    <select id="userCategorie" required>
-                        <option value="">Sélectionner...</option>
-                        <option value="entreprise">Entreprise</option>
-                        <option value="juriste">Juriste</option>
-                        <option value="autres">Autres</option>
-                    </select>
-                </div>
+                <SelectForm value={user.categorie} onchange={(value) => setUser({...user, categorie: value})} placeholder="Ex: Juriste" type="text" label="Catégorie" id="categorie" require={true} error={error.categorie} options={categorieUtilisateur?.map((cu) => ({value:cu.categorieutilisateurorgid, label:cu.libelle}))} icon="user-tag"/>
                 
-                <div class="modal-form-group full-width" id="adresseField" >
-                    <label>Adresse</label>
-                    <textarea rows="3" placeholder="Adresse complète..."></textarea>
-                </div>
+                <InputForm value={user.adresse} onchange={(value) => setUser({...user, adresse: value})} placeholder="Ex: 123 Rue de la Paix" label="Adresse" id="adresse" require={true} error={error.adresse} icon="map-marker"/>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" type="button" onClick={hideModal}>Annuler</button>
-                <button class="btn btn-primary" type="submit">Enregistrer</button>
+            <div class="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
+                <button type="submit" class="btn btn-primary"><i class={`fas fa-${ loaderVisible ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
             </div>
         </form>
     )

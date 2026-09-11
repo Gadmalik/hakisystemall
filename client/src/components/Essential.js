@@ -18,6 +18,7 @@ export function SideBar() {
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="folder-open" label="Dossiers" page="dossiers" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="exclamation-triangle" label="Mes signalements" page="mysignalement" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="institution" label="Organisations" page="organisations" />
+            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="user-tie" label="Gestion d'utilisateurs" page="utilisateursorg" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="user-tag" label="Categories d'utilisateurs" page="categorieutilisateurorg" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="users" label="Utilisateurs" page="utilisateurs" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="newspaper" label="Articles (Éduc)" page="articles" />
@@ -120,7 +121,6 @@ export function Modal({visible, setVisible, data, title, hideModal, onSubmit}){
         }
     },[visible, data, dataSend]);
     useEffect(() => {
-        
         setDataSend(data);
     }, [data]);
     return (

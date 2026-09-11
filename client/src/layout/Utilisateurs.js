@@ -78,13 +78,6 @@ export function Utilisateurs() {
     return (
         <>
             <Header title={"Utilisateurs"} searchFunction={searchUser} />
-            <Modal 
-                data={{form:"formuser"}}
-                title={"Ajouter un utilisateur"}
-                setVisible={setVisibleModal}
-                visible={visibleModal}
-                hideModal={hideModal}
-            />
             {/* bouton confirmer, annuler, supprimer ---- flotant */}
             {selectedUsers.length > 0 && <div className="floating-actions">
                 <button className="btn btn-success" onClick={() => executeAction('actif')}><i className="fas fa-check"></i> Confirmer</button>
@@ -92,7 +85,6 @@ export function Utilisateurs() {
                 <button className="btn btn-danger" onClick={() => executeAction('désactivé')}><i className="fas fa-trash"></i> Supprimer</button>
             </div>}
             <div className="main-container">
-                <HeaderButton onclick={() => setVisibleModal(true)}/>
                 <div class="card-tableau">
                     <div className="table-wrapper">
                         <table>

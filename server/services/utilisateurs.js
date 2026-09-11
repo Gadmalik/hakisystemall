@@ -30,6 +30,28 @@ export async function AddUtilisateur(data){
     return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true};
 }
 
+
+export async function AddUtilisateurOrg(data){
+    if(!data.nom || !data.prenom || !data.phone || !data.email || !data.username || !data.categorie){
+        return {message:"informations de connexion insuffisant !"};
+    }
+    const verif_user = await VerifUsername(data);
+    if(!verif_user.success){
+        return verif_user;
+    }
+    const verif_email = await VerifEmail(data);
+    if(!verif_email.success){
+        return verif_email;
+    }
+    const verif_phone = await VerifPhone(data);
+    if(!verif_phone.success){
+        return verif_phone;
+    }
+    const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, code, etat, categorieutilisateurid, adresse,date_create, type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.code, "en attente", data.categorie, data.adresse, data.date_create, "second"]);
+    return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true};
+}
+
+
 export async function VerifUsername(data){
     const verif_user = await pool.query("SELECT * FROM utilisateurs WHERE username = $1", [data.username]);
     if(verif_user.rows.length > 0){
@@ -71,8 +93,10 @@ export async function SetMdpUtilisateur(data){
         }
         const setMdp = await pool.query("UPDATE utilisateurs SET mdp = $1, code = $2 WHERE userid=$3 RETURNING *", [hashmdp, null, data.userid]);
         if(setMdp.rowCount > 0){
-            const categorieutilisateur = await getCategorieUtilisateurById(setMdp.rows[0].categorieutilisateurid);
-            console.log(categorieutilisateur, setMdp.categorieutilisateurid);
+            if(setMdp.rows[0].type === "second"){
+                return {message:"Mot de passe mis à jour avec succès !", status:"success", code:"success", success:true, data: setMdp.rows[0]};
+            }
+            const categorieutilisateur = await getCategorieUtilisateurById(verif_user.rows[0].categorieutilisateurid);
             const organisation = await pool.query("SELECT * FROM organisation WHERE userid=$1", [data.userid]);
             return {message:"Mot de passe mis à jour avec succès !", status:"success", code:"success", success:true, data:{categorieutilisateur: categorieutilisateur.data, user: setMdp.rows[0], organisation: organisation.rows[0]}};
         }
@@ -166,4 +190,8 @@ export async function login(data){
         console.log(error);
         return {message:"Une erreur s'est produite !", status:"error", code:"", error: error, success:false};
     }
+}
+
+function generateCode(){
+    return Math.floor(100000 + Math.random() * 900000);
 }

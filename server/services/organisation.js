@@ -33,6 +33,17 @@ export async function getOrganisations(){
     }
 }
 
+export async function getOrganisation(data){
+    try{
+        const org = await pool.query("SELECT * FROM organisation WHERE organisationid=$1", [data.organisationid]);
+        return {status:"success", success: true, data: org.rows[0] };
+    }catch(error){
+        console.error(error);
+        return {status: "error", success: false, message: error.message};
+    }
+}
+
+
 export async function verifOrganisationByDesignation(data){
     const org = await pool.query("SELECT * FROM organisation WHERE designation=$1", [data.designation]);
     return {status:"success", success: true, data: org.rows };

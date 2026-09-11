@@ -5,12 +5,12 @@ import path from "path";
 import { addArticle, getArticle, getDossier, getUser, setEtatAttribut, suivreDossier, updateProfile } from "./queries.js";
 import multer from "multer";
 import { fileURLToPath } from 'url';
-import { AddUtilisateur, getCategorieUtilisateur, getUserByCode, login, SetMdpUtilisateur } from "./services/utilisateurs.js";
-import { ConfirmMail } from "./services/mailsModel.js";
+import { AddUtilisateur, AddUtilisateurOrg, getCategorieUtilisateur, getUserByCode, login, SetMdpUtilisateur } from "./services/utilisateurs.js";
+import { ConfirmMail, ConfirmOrgMail } from "./services/mailsModel.js";
 import { sendMail } from "./services/mail.js";
 import { AddSignalement, getIncidentByUser } from "./services/incident.js";
 import { SendNotification, SubscribeUser } from "./services/notification.js";
-import { actionOrganisations, addOrganisation, getOrganisations, getTypeOrganisation } from "./services/organisation.js";
+import { actionOrganisations, addOrganisation, getOrganisation, getOrganisations, getTypeOrganisation } from "./services/organisation.js";
 import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, getcategorieutilisateurOrg, getUtilisateursByOrganisationId } from "./services/categorieutilisateurs.js";
 
 // recréer __filename et __dirname
@@ -26,6 +26,17 @@ app.get("/users", async (req, res) => {
     try {
         const result = await pool.query("SELECT * FROM utilisateurs");
         res.json({data: result.rows, status:"success", code:"success"});
+    } catch (error) {
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:""})
+    }
+});
+
+app.get("/users/:organisationid", async (req, res) => {
+    try {
+        const {organisationid} = req.params;
+        const result = await getUtilisateursByOrganisationId({organisationid});
+        res.json(result);
     } catch (error) {
         console.log(error);
         res.json({message:"Une erreur s'est produite !", status:"error", code:""})
@@ -66,7 +77,37 @@ app.post("/user", async (req, res) => {
     }
 })
 
-app.post("/user/mdp", async (req, res) => {
+app.post("/user/:organisationid", async (req, res) => {
+    try{
+        const {organisationid} = req.params;
+        const organisation = await getOrganisation({organisationid});
+
+        if(organisation.success){
+            const {nom, prenom, phone, email, username, categorie, adresse =""} = req.body;
+            console.log(req.body);
+            const date = new Date();
+            const date_create = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+            const code = Math.floor(100000 + Math.random() * 900000);
+            const textmail = ConfirmOrgMail(`${nom} ${prenom}`, email, code, organisation.data.designation);
+            const result = await AddUtilisateurOrg({nom, prenom, phone, email, username, categorie, adresse, date_create,code});
+            if(result.status){
+                const sendmail = await sendMail({to:email, subject:"Invitation - "+organisation.data.designation, text:textmail});
+                if(!sendmail.success){
+                    res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: sendmail.error});
+                }
+
+            }
+            res.json(result);
+        }else{
+            res.json({message:"Organisation non trouvée!", status:"error", code:"", error: "organisation not found", success: false});
+        }
+    }catch(error){
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
+    }
+})
+
+app.put("/user/mdp", async (req, res) => {
     try{
         const {userid, mdp} = req.body;
         const result = await SetMdpUtilisateur({userid, mdp});
@@ -75,9 +116,9 @@ app.post("/user/mdp", async (req, res) => {
         console.log(error);
         res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
     }
-})
+});
 
-app.post("/user/code", async (req, res) => {
+app.put("/user/code", async (req, res) => {
     try{
         const {code, email} = req.body;
         const result = await getUserByCode({code, email});
@@ -172,28 +213,6 @@ app.post("/organisation/:action", async (req, res) => {
     try{
         const {action} = req.params;
         const reponse = await actionOrganisations({action, ...req.body});
-        res.json({...reponse});
-    }catch(error){
-        console.log(error);
-        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
-    }
-})
-
-app.get("/categorieutilisateurorg/:organisationid", async (req, res) => {
-    try{
-        const {organisationid} = req.params;
-        const reponse = await getUtilisateursByOrganisationId({organisationid});
-        res.json({...reponse});
-    }catch(error){
-        console.log(error);
-        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
-    }
-})
-
-app.post("/assignercategorieutilisateurorg", async (req, res) => {
-    try{
-        const {categorieutilisateurorgid, userid} = req.body;
-        const reponse = await addAssignerCategorieUtilisateur({categorieutilisateurorgid, userid});
         res.json({...reponse});
     }catch(error){
         console.log(error);

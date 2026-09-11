@@ -39,7 +39,7 @@ export async function addAssignerCategorieUtilisateur(data){
 
 export async function getUtilisateursByOrganisationId(data){
     try {
-        const query = "SELECT * FROM utilisateurs ut JOIN assignercategorieutilisateurorg acuo ON ut.userid = acuo.userid JOIN categorieutilisateurorg cuo ON acuo.categorieutilisateurorgid = cuo.categorieutilisateurorgid WHERE cuo.organisationid = $1 AND ut.status = 'actif' AND acuo.status = 'actif'";
+        const query = "SELECT * FROM utilisateurs ut JOIN categorieutilisateurorg cuo ON ut.categorieutilisateurid = cuo.categorieutilisateurorgid WHERE cuo.organisationid = $1 AND ut.etat = 'actif' AND ut.type = 'second'";
         const result = await pool.query(query, [data.organisationid]);
         return {status: "success", success: true, data: result.rows};
     } catch (error) {

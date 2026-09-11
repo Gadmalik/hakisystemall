@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict oRPGhqN488PAtd0JhXeFeQdNw2MINl71CxjsqTBEKdmoLVKXO2b4JVMkhyHYP7z
+\restrict DtwB2DusZYtyTpMIU8U7HiFV4Fx4EILtbIGmfh2vTZUTJdjDqzW4Fzguzgu2zZx
 
 -- Dumped from database version 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)
 
--- Started on 2026-08-30 19:53:02 CAT
+-- Started on 2026-09-11 20:59:59 CAT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -59,13 +59,31 @@ CREATE SEQUENCE public.article_articleid_seq
 ALTER SEQUENCE public.article_articleid_seq OWNER TO asuna;
 
 --
--- TOC entry 3519 (class 0 OID 0)
+-- TOC entry 3576 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: article_articleid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
 
 ALTER SEQUENCE public.article_articleid_seq OWNED BY public.article.articleid;
 
+
+--
+-- TOC entry 234 (class 1259 OID 33719)
+-- Name: assignercategorieutilisateurorg; Type: TABLE; Schema: public; Owner: asuna
+--
+
+CREATE TABLE public.assignercategorieutilisateurorg (
+    assignercategorieutilisateurorgid uuid DEFAULT gen_random_uuid() NOT NULL,
+    status character varying(50) DEFAULT 'actif'::character varying,
+    date_attribution timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    organisationid uuid,
+    userid integer
+);
+
+
+ALTER TABLE public.assignercategorieutilisateurorg OWNER TO asuna;
 
 --
 -- TOC entry 222 (class 1259 OID 16440)
@@ -100,7 +118,7 @@ CREATE SEQUENCE public.attribuerdossier_attribuerid_seq
 ALTER SEQUENCE public.attribuerdossier_attribuerid_seq OWNER TO asuna;
 
 --
--- TOC entry 3520 (class 0 OID 0)
+-- TOC entry 3577 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: attribuerdossier_attribuerid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -134,7 +152,8 @@ CREATE TABLE public.categorieutilisateur (
     designation character varying(50) NOT NULL,
     description text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    confirm boolean DEFAULT true NOT NULL
+    confirm boolean DEFAULT true NOT NULL,
+    organisation boolean DEFAULT false NOT NULL
 );
 
 
@@ -157,12 +176,54 @@ CREATE SEQUENCE public.categorieutilisateur_categorieutilisateurid_seq
 ALTER SEQUENCE public.categorieutilisateur_categorieutilisateurid_seq OWNER TO asuna;
 
 --
--- TOC entry 3521 (class 0 OID 0)
+-- TOC entry 3578 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: categorieutilisateur_categorieutilisateurid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
 
 ALTER SEQUENCE public.categorieutilisateur_categorieutilisateurid_seq OWNED BY public.categorieutilisateur.categorieutilisateurid;
+
+
+--
+-- TOC entry 233 (class 1259 OID 33709)
+-- Name: categorieutilisateurorg; Type: TABLE; Schema: public; Owner: asuna
+--
+
+CREATE TABLE public.categorieutilisateurorg (
+    categorieutilisateurorgid integer NOT NULL,
+    libelle character varying(100) NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    status character varying(50) DEFAULT 'actif'::character varying,
+    organisationid uuid
+);
+
+
+ALTER TABLE public.categorieutilisateurorg OWNER TO asuna;
+
+--
+-- TOC entry 232 (class 1259 OID 33708)
+-- Name: categorieutilisateurorg_categorieutilisateurorgid_seq; Type: SEQUENCE; Schema: public; Owner: asuna
+--
+
+CREATE SEQUENCE public.categorieutilisateurorg_categorieutilisateurorgid_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.categorieutilisateurorg_categorieutilisateurorgid_seq OWNER TO asuna;
+
+--
+-- TOC entry 3579 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: categorieutilisateurorg_categorieutilisateurorgid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
+--
+
+ALTER SEQUENCE public.categorieutilisateurorg_categorieutilisateurorgid_seq OWNED BY public.categorieutilisateurorg.categorieutilisateurorgid;
 
 
 --
@@ -182,7 +243,7 @@ CREATE SEQUENCE public.cateogie_incident_id_seq
 ALTER SEQUENCE public.cateogie_incident_id_seq OWNER TO asuna;
 
 --
--- TOC entry 3522 (class 0 OID 0)
+-- TOC entry 3580 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: cateogie_incident_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -229,13 +290,41 @@ CREATE SEQUENCE public.incident_id_incident_seq
 ALTER SEQUENCE public.incident_id_incident_seq OWNER TO asuna;
 
 --
--- TOC entry 3523 (class 0 OID 0)
+-- TOC entry 3581 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: incident_id_incident_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
 
 ALTER SEQUENCE public.incident_id_incident_seq OWNED BY public.incident.id_incident;
 
+
+--
+-- TOC entry 231 (class 1259 OID 33665)
+-- Name: organisation; Type: TABLE; Schema: public; Owner: asuna
+--
+
+CREATE TABLE public.organisation (
+    organisationid uuid DEFAULT gen_random_uuid() NOT NULL,
+    designation character varying(255) NOT NULL,
+    sigle character varying(50),
+    typeorganisationid integer NOT NULL,
+    pays character varying(100) NOT NULL,
+    province character varying(100),
+    ville character varying(100) NOT NULL,
+    adresse_org text,
+    phone_org character varying(50),
+    email_org character varying(255) NOT NULL,
+    site_web character varying(255),
+    reseaux_sociaux text,
+    logo_url character varying(500),
+    userid integer NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    status character varying DEFAULT 'en_attente'::character varying NOT NULL
+);
+
+
+ALTER TABLE public.organisation OWNER TO asuna;
 
 --
 -- TOC entry 228 (class 1259 OID 33550)
@@ -269,12 +358,52 @@ CREATE SEQUENCE public.push_subscriptions_id_seq
 ALTER SEQUENCE public.push_subscriptions_id_seq OWNER TO asuna;
 
 --
--- TOC entry 3524 (class 0 OID 0)
+-- TOC entry 3582 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: push_subscriptions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
 
 ALTER SEQUENCE public.push_subscriptions_id_seq OWNED BY public.push_subscriptions.id;
+
+
+--
+-- TOC entry 230 (class 1259 OID 33654)
+-- Name: type_organisation; Type: TABLE; Schema: public; Owner: asuna
+--
+
+CREATE TABLE public.type_organisation (
+    typeorganisationid integer NOT NULL,
+    libelle character varying(100) NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.type_organisation OWNER TO asuna;
+
+--
+-- TOC entry 229 (class 1259 OID 33653)
+-- Name: type_organisation_typeorganisationid_seq; Type: SEQUENCE; Schema: public; Owner: asuna
+--
+
+CREATE SEQUENCE public.type_organisation_typeorganisationid_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.type_organisation_typeorganisationid_seq OWNER TO asuna;
+
+--
+-- TOC entry 3583 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: type_organisation_typeorganisationid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
+--
+
+ALTER SEQUENCE public.type_organisation_typeorganisationid_seq OWNED BY public.type_organisation.typeorganisationid;
 
 
 --
@@ -289,7 +418,7 @@ CREATE TABLE public.utilisateurs (
     phone character varying(150),
     mdp text,
     code integer,
-    type character varying(20),
+    type character varying(20) DEFAULT 'main'::character varying NOT NULL,
     etat character varying(20),
     date_create date,
     username character(50) NOT NULL,
@@ -318,7 +447,7 @@ CREATE SEQUENCE public.utilisateurs_userid_seq
 ALTER SEQUENCE public.utilisateurs_userid_seq OWNER TO postgres;
 
 --
--- TOC entry 3525 (class 0 OID 0)
+-- TOC entry 3584 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: utilisateurs_userid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -327,7 +456,7 @@ ALTER SEQUENCE public.utilisateurs_userid_seq OWNED BY public.utilisateurs.useri
 
 
 --
--- TOC entry 3330 (class 2604 OID 16460)
+-- TOC entry 3349 (class 2604 OID 16460)
 -- Name: article articleid; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -335,7 +464,7 @@ ALTER TABLE ONLY public.article ALTER COLUMN articleid SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 3329 (class 2604 OID 16443)
+-- TOC entry 3348 (class 2604 OID 16443)
 -- Name: attribuerdossier attribuerid; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -343,7 +472,7 @@ ALTER TABLE ONLY public.attribuerdossier ALTER COLUMN attribuerid SET DEFAULT ne
 
 
 --
--- TOC entry 3326 (class 2604 OID 16418)
+-- TOC entry 3345 (class 2604 OID 16418)
 -- Name: categorie_incident categorie_id; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -351,7 +480,7 @@ ALTER TABLE ONLY public.categorie_incident ALTER COLUMN categorie_id SET DEFAULT
 
 
 --
--- TOC entry 3331 (class 2604 OID 33530)
+-- TOC entry 3350 (class 2604 OID 33530)
 -- Name: categorieutilisateur categorieutilisateurid; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -359,7 +488,15 @@ ALTER TABLE ONLY public.categorieutilisateur ALTER COLUMN categorieutilisateurid
 
 
 --
--- TOC entry 3327 (class 2604 OID 16425)
+-- TOC entry 3362 (class 2604 OID 33712)
+-- Name: categorieutilisateurorg categorieutilisateurorgid; Type: DEFAULT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.categorieutilisateurorg ALTER COLUMN categorieutilisateurorgid SET DEFAULT nextval('public.categorieutilisateurorg_categorieutilisateurorgid_seq'::regclass);
+
+
+--
+-- TOC entry 3346 (class 2604 OID 16425)
 -- Name: incident id_incident; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -367,7 +504,7 @@ ALTER TABLE ONLY public.incident ALTER COLUMN id_incident SET DEFAULT nextval('p
 
 
 --
--- TOC entry 3334 (class 2604 OID 33553)
+-- TOC entry 3354 (class 2604 OID 33553)
 -- Name: push_subscriptions id; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -375,7 +512,15 @@ ALTER TABLE ONLY public.push_subscriptions ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
--- TOC entry 3325 (class 2604 OID 16409)
+-- TOC entry 3356 (class 2604 OID 33657)
+-- Name: type_organisation typeorganisationid; Type: DEFAULT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.type_organisation ALTER COLUMN typeorganisationid SET DEFAULT nextval('public.type_organisation_typeorganisationid_seq'::regclass);
+
+
+--
+-- TOC entry 3343 (class 2604 OID 16409)
 -- Name: utilisateurs userid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -383,7 +528,7 @@ ALTER TABLE ONLY public.utilisateurs ALTER COLUMN userid SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3509 (class 0 OID 16457)
+-- TOC entry 3560 (class 0 OID 16457)
 -- Dependencies: 224
 -- Data for Name: article; Type: TABLE DATA; Schema: public; Owner: asuna
 --
@@ -398,7 +543,17 @@ COPY public.article (articleid, titre, date_create, contenu, piecesjointes, type
 
 
 --
--- TOC entry 3507 (class 0 OID 16440)
+-- TOC entry 3570 (class 0 OID 33719)
+-- Dependencies: 234
+-- Data for Name: assignercategorieutilisateurorg; Type: TABLE DATA; Schema: public; Owner: asuna
+--
+
+COPY public.assignercategorieutilisateurorg (assignercategorieutilisateurorgid, status, date_attribution, created_at, updated_at, organisationid, userid) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3558 (class 0 OID 16440)
 -- Dependencies: 222
 -- Data for Name: attribuerdossier; Type: TABLE DATA; Schema: public; Owner: asuna
 --
@@ -406,11 +561,12 @@ COPY public.article (articleid, titre, date_create, contenu, piecesjointes, type
 COPY public.attribuerdossier (attribuerid, date, status, userid, dossierid) FROM stdin;
 9	2026-08-27	en cours	6	10
 10	2026-08-30	cloturer	6	9
+11	2026-08-31	en cours	10	11
 \.
 
 
 --
--- TOC entry 3503 (class 0 OID 16415)
+-- TOC entry 3554 (class 0 OID 16415)
 -- Dependencies: 218
 -- Data for Name: categorie_incident; Type: TABLE DATA; Schema: public; Owner: asuna
 --
@@ -422,20 +578,32 @@ COPY public.categorie_incident (categorie_id, designation, etat, date, niveau) F
 
 
 --
--- TOC entry 3511 (class 0 OID 33527)
+-- TOC entry 3562 (class 0 OID 33527)
 -- Dependencies: 226
 -- Data for Name: categorieutilisateur; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
-COPY public.categorieutilisateur (categorieutilisateurid, designation, description, created_at, confirm) FROM stdin;
-1	Admin	Accès complet à la plateforme et à la gestion des utilisateurs	2026-08-25 10:35:26.960024+02	t
-3	professionnel	Utilisateur professionel avec accès aux services avancé	2026-08-25 10:35:26.960024+02	t
-2	utilisateur	Utilisateur standard avec accès aux services de base	2026-08-25 10:35:26.960024+02	f
+COPY public.categorieutilisateur (categorieutilisateurid, designation, description, created_at, confirm, organisation) FROM stdin;
+1	Admin	Accès complet à la plateforme et à la gestion des utilisateurs	2026-08-25 10:35:26.960024+02	t	f
+3	professionnel	Utilisateur professionel avec accès aux services avancé	2026-08-25 10:35:26.960024+02	t	f
+2	utilisateur	Utilisateur standard avec accès aux services de base	2026-08-25 10:35:26.960024+02	f	f
+4	organisation	Accès complet au fonctionnalité professionnel	2026-09-07 06:45:02.659489+02	f	t
 \.
 
 
 --
--- TOC entry 3505 (class 0 OID 16422)
+-- TOC entry 3569 (class 0 OID 33709)
+-- Dependencies: 233
+-- Data for Name: categorieutilisateurorg; Type: TABLE DATA; Schema: public; Owner: asuna
+--
+
+COPY public.categorieutilisateurorg (categorieutilisateurorgid, libelle, description, created_at, status, organisationid) FROM stdin;
+1	Juriste	utilisateurs juristes 	2026-09-11 14:27:00.424525+02	actif	8befdf34-dd72-47f4-a620-cee0fc377afc
+\.
+
+
+--
+-- TOC entry 3556 (class 0 OID 16422)
 -- Dependencies: 220
 -- Data for Name: incident; Type: TABLE DATA; Schema: public; Owner: asuna
 --
@@ -444,38 +612,70 @@ COPY public.incident (lieu, id_incident, description, date_incident, status, ano
 Beni	9	Description 	2026-08-26	actif	\N	1	\N	\N	2026-08-26	\N
 Beni, Kanzuli	10	Beni,f rrkmv rvrvkvtjv tnvtvnjvdc 	2026-08-25	actif	\N	2	\N	\N	2026-08-26	6
 Beni	11	description	2026-08-29	actif	\N	2	\N	\N	2026-08-30	6
+Residentiel 	12	Faudre,..rmvrvrkv vj vjr vje fef;ervmef rtvnkddk efjrf	2026-08-31	actif	\N	2	\N	\N	2026-08-31	10
 \.
 
 
 --
--- TOC entry 3513 (class 0 OID 33550)
+-- TOC entry 3567 (class 0 OID 33665)
+-- Dependencies: 231
+-- Data for Name: organisation; Type: TABLE DATA; Schema: public; Owner: asuna
+--
+
+COPY public.organisation (organisationid, designation, sigle, typeorganisationid, pays, province, ville, adresse_org, phone_org, email_org, site_web, reseaux_sociaux, logo_url, userid, created_at, updated_at, status) FROM stdin;
+8befdf34-dd72-47f4-a620-cee0fc377afc	LONFORD	LFD	1	CD	Beni	Beni	C. MULEKERA	\N	gadmalik423@gmail.com	https://lonford.org	facebook.com	/logo/ee77c95c29b5563c91a3f219abdc5cbc	12	2026-09-09 22:04:42.278902+02	2026-09-09 22:04:42.278902+02	actif
+\.
+
+
+--
+-- TOC entry 3564 (class 0 OID 33550)
 -- Dependencies: 228
 -- Data for Name: push_subscriptions; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
 COPY public.push_subscriptions (id, userid, subscription, created_at) FROM stdin;
-2	6	{"keys": {"auth": "Jn8Yj4BOTFRm8iGHJvQ65g", "p256dh": "BNoYwQN42-XDbSN-3_jm54-hJrG8m86gnUhQZu5btoD-O1HVFFGnue0clf1Ri6syd0BwarUtfLtA0Slk4P3H23M"}, "endpoint": "https://fcm.googleapis.com/fcm/send/c_W3Un6048c:APA91bEwJALdIIet8DSasQWo2oNarvsbmX8BkIZj2aireU2jnd2cqUdrhQrbc4qdNDRQ1BNooeRSGn6Uk12lVtklf2b9e7V-bYnUbGfimOTsFr5XT-Idt9IhjRMCVqtGHlDViFY3to3B", "expirationTime": null}	2026-08-27 14:44:16.707429
 35	6	{"keys": {"auth": "wxbYgQmmzS6E-uBAqPqnrQ", "p256dh": "BB0p08utwNQfbZuzx1f95tHVReuyxUpGczaArNNsi-tq0nN_LoPb5mWyAifz4CUlbZjkNudYg_ClIQMWP4oE1ws"}, "endpoint": "https://fcm.googleapis.com/fcm/send/eGeSotQoimw:APA91bGVATPjbnWkftwEb6tr_OlW60o5ofxp9GhNjrHzbgDSv3gDXze97zGEuZXNeYPqxj9PXSv66WGdDMoPdZFGGj1PGJWB3PThvLGU8djLkLp9_xt5F9C6v5_JZt2qzivAbeW1CntJ", "expirationTime": null}	2026-08-30 17:46:35.537188
 36	6	{"keys": {"auth": "Mo9u36iLujG-eh5gyc-sgQ", "p256dh": "BI7HRNyH7m7TBxmyd-1PxjzfaYqMp4mPGGAkKbvxt9hV5ol7eV8W1GfE9wk3iWkIfZUURR8hvzbmFAo85albsYg"}, "endpoint": "https://fcm.googleapis.com/fcm/send/dxUh_OYF31Y:APA91bHzfh_M7XyXJtDg5IFlDisPfHeunFDRlnCl_Z7BPCM6z7r0xt9oRXVvWEJUFU3L0O3tQ156_c1VPF9tCWFchQ2xobY66W0MI_Pi0wl-o-gW5_JNscwuaRbnvi6i4rzb1G_FSjap", "expirationTime": null}	2026-08-30 17:46:35.567131
+2	13	{"keys": {"auth": "Jn8Yj4BOTFRm8iGHJvQ65g", "p256dh": "BNoYwQN42-XDbSN-3_jm54-hJrG8m86gnUhQZu5btoD-O1HVFFGnue0clf1Ri6syd0BwarUtfLtA0Slk4P3H23M"}, "endpoint": "https://fcm.googleapis.com/fcm/send/c_W3Un6048c:APA91bEwJALdIIet8DSasQWo2oNarvsbmX8BkIZj2aireU2jnd2cqUdrhQrbc4qdNDRQ1BNooeRSGn6Uk12lVtklf2b9e7V-bYnUbGfimOTsFr5XT-Idt9IhjRMCVqtGHlDViFY3to3B", "expirationTime": null}	2026-08-27 14:44:16.707429
 \.
 
 
 --
--- TOC entry 3501 (class 0 OID 16406)
+-- TOC entry 3566 (class 0 OID 33654)
+-- Dependencies: 230
+-- Data for Name: type_organisation; Type: TABLE DATA; Schema: public; Owner: asuna
+--
+
+COPY public.type_organisation (typeorganisationid, libelle, description, created_at) FROM stdin;
+1	Entreprise privée	\N	2026-09-07 19:53:56.934111+02
+2	ONG / Association	\N	2026-09-07 19:53:56.934111+02
+3	Institution publique	\N	2026-09-07 19:53:56.934111+02
+4	Autre	\N	2026-09-07 19:53:56.934111+02
+\.
+
+
+--
+-- TOC entry 3552 (class 0 OID 16406)
 -- Dependencies: 216
 -- Data for Name: utilisateurs; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.utilisateurs (userid, nom, email, phone, mdp, code, type, etat, date_create, username, adresse, prenom, categorieutilisateurid) FROM stdin;
-2	Malik Will	gad@gmail.com	243826711828	423#malik	\N	juriste	actif	2026-04-13	will                                              	Beni	\N	\N
-1	Gad Malik	gadmalik42@gmail.com	243993886474	423#malik	\N	juriste	actif	2026-03-12	gadmalik                                          	Beni, tamende	\N	\N
-6	Malik	gadmalik423@gmail.com	243896711828	$2b$10$TxUHrGAyzZ/pmHD1I4.wouAljiqwC/f0vUjBwPmttFSYTjlBWZpAa	\N	\N	actif	2026-08-25	gadmalik423                                       	Beni	Gad	2
-7	Malik	gadmalikidogo@gmail.com	243993886475	\N	663136	\N	en attente	2026-08-30	gmalike                                           	Beni	Gad	1
+2	Malik Will	gad@gmail.com	243826711828	423#malik	\N	main	actif	2026-04-13	will                                              	Beni	\N	1
+6	Malik	gadmalik43@gmail.com	2438671182	$2b$10$TxUHrGAyzZ/pmHD1I4.wouAljiqwC/f0vUjBwPmttFSYTjlBWZpAa	\N	main	actif	2026-08-25	gadmalik423                                       	Beni	Gad	2
+8	malikidogo	gracechiru1@gmail.com	243990886	\N	304896	main	en attente	2026-08-31	gmalikidogo                                       	beni	gad	1
+9	Grace	gracechiru41@gmail.com	24399086	\N	264326	main	en attente	2026-08-31	chigrace                                          	Beni	Mwinja	1
+10	Grace	chirumwinja@gmail.com	24399999999	$2b$10$cC9xlqawt46Y4UtrvY6qeOTGcakG4cLXBsrZXcIvEli/dZXj9BCcO	\N	main	actif	2026-08-31	grace                                             	Beni	Mwinja	1
+12	Malik	gadmalik423@gmail.com	0826711828	$2b$10$npMK9vowirkmVr1Mx/jJj.aL78V3LAHTP3xh9OLYyOR5wKeZdGl0C	\N	main	actif	2026-09-08	gmlk                                              	Beni	Gad	4
+1	Gad Malik	gadmalik42@gmail.com	243993886474	423#malik	\N	main	actif	2026-03-12	mm                                                	Beni, tamende	\N	2
+11	Malik	gadmalik425@gmail.com	243993886472	\N	349139	main	actif	2026-09-08	gmm                                               	Beni	Gad	4
+7	Malik	gmalikidogo@gmail.com	243993886475	\N	663136	second	en attente	2026-08-30	gmalike                                           	Beni	Gad	1
+13	Elie	gadmalikidogo@gmail.com	243993886477	$2b$10$nqbClTlxQPF4SZ1gi7o33ujZ9XGP/6oi41hqPesx1/L16yOHHxMpG	\N	second	en attente	2026-09-11	gadmalik                                          	Beni	MALIK	1
 \.
 
 
 --
--- TOC entry 3526 (class 0 OID 0)
+-- TOC entry 3585 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: article_articleid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
@@ -484,25 +684,34 @@ SELECT pg_catalog.setval('public.article_articleid_seq', 5, true);
 
 
 --
--- TOC entry 3527 (class 0 OID 0)
+-- TOC entry 3586 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: attribuerdossier_attribuerid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
 
-SELECT pg_catalog.setval('public.attribuerdossier_attribuerid_seq', 10, true);
+SELECT pg_catalog.setval('public.attribuerdossier_attribuerid_seq', 11, true);
 
 
 --
--- TOC entry 3528 (class 0 OID 0)
+-- TOC entry 3587 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: categorieutilisateur_categorieutilisateurid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
 
-SELECT pg_catalog.setval('public.categorieutilisateur_categorieutilisateurid_seq', 3, true);
+SELECT pg_catalog.setval('public.categorieutilisateur_categorieutilisateurid_seq', 4, true);
 
 
 --
--- TOC entry 3529 (class 0 OID 0)
+-- TOC entry 3588 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: categorieutilisateurorg_categorieutilisateurorgid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
+--
+
+SELECT pg_catalog.setval('public.categorieutilisateurorg_categorieutilisateurorgid_seq', 1, true);
+
+
+--
+-- TOC entry 3589 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: cateogie_incident_id_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
@@ -511,34 +720,52 @@ SELECT pg_catalog.setval('public.cateogie_incident_id_seq', 2, true);
 
 
 --
--- TOC entry 3530 (class 0 OID 0)
+-- TOC entry 3590 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: incident_id_incident_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
 
-SELECT pg_catalog.setval('public.incident_id_incident_seq', 11, true);
+SELECT pg_catalog.setval('public.incident_id_incident_seq', 12, true);
 
 
 --
--- TOC entry 3531 (class 0 OID 0)
+-- TOC entry 3591 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: push_subscriptions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
 
-SELECT pg_catalog.setval('public.push_subscriptions_id_seq', 37, true);
+SELECT pg_catalog.setval('public.push_subscriptions_id_seq', 103, true);
 
 
 --
--- TOC entry 3532 (class 0 OID 0)
+-- TOC entry 3592 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: type_organisation_typeorganisationid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
+--
+
+SELECT pg_catalog.setval('public.type_organisation_typeorganisationid_seq', 6, true);
+
+
+--
+-- TOC entry 3593 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: utilisateurs_userid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.utilisateurs_userid_seq', 7, true);
+SELECT pg_catalog.setval('public.utilisateurs_userid_seq', 13, true);
 
 
 --
--- TOC entry 3339 (class 2606 OID 16430)
+-- TOC entry 3396 (class 2606 OID 33728)
+-- Name: assignercategorieutilisateurorg assignercategorieutilisateurorg_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.assignercategorieutilisateurorg
+    ADD CONSTRAINT assignercategorieutilisateurorg_pkey PRIMARY KEY (assignercategorieutilisateurorgid);
+
+
+--
+-- TOC entry 3373 (class 2606 OID 16430)
 -- Name: categorie_incident categorie_id_pk; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -547,7 +774,7 @@ ALTER TABLE ONLY public.categorie_incident
 
 
 --
--- TOC entry 3344 (class 2606 OID 33537)
+-- TOC entry 3378 (class 2606 OID 33537)
 -- Name: categorieutilisateur categorieutilisateur_designation_key; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -556,7 +783,7 @@ ALTER TABLE ONLY public.categorieutilisateur
 
 
 --
--- TOC entry 3346 (class 2606 OID 33535)
+-- TOC entry 3380 (class 2606 OID 33535)
 -- Name: categorieutilisateur categorieutilisateur_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -565,7 +792,16 @@ ALTER TABLE ONLY public.categorieutilisateur
 
 
 --
--- TOC entry 3342 (class 2606 OID 16437)
+-- TOC entry 3394 (class 2606 OID 33718)
+-- Name: categorieutilisateurorg categorieutilisateurorg_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.categorieutilisateurorg
+    ADD CONSTRAINT categorieutilisateurorg_pkey PRIMARY KEY (categorieutilisateurorgid);
+
+
+--
+-- TOC entry 3376 (class 2606 OID 16437)
 -- Name: incident incident_pk; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -574,7 +810,16 @@ ALTER TABLE ONLY public.incident
 
 
 --
--- TOC entry 3348 (class 2606 OID 33558)
+-- TOC entry 3392 (class 2606 OID 33674)
+-- Name: organisation organisation_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.organisation
+    ADD CONSTRAINT organisation_pkey PRIMARY KEY (organisationid);
+
+
+--
+-- TOC entry 3382 (class 2606 OID 33558)
 -- Name: push_subscriptions push_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -583,7 +828,7 @@ ALTER TABLE ONLY public.push_subscriptions
 
 
 --
--- TOC entry 3350 (class 2606 OID 33560)
+-- TOC entry 3384 (class 2606 OID 33560)
 -- Name: push_subscriptions push_subscriptions_subscription_key; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -592,7 +837,25 @@ ALTER TABLE ONLY public.push_subscriptions
 
 
 --
--- TOC entry 3337 (class 2606 OID 16413)
+-- TOC entry 3386 (class 2606 OID 33664)
+-- Name: type_organisation type_organisation_libelle_key; Type: CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.type_organisation
+    ADD CONSTRAINT type_organisation_libelle_key UNIQUE (libelle);
+
+
+--
+-- TOC entry 3388 (class 2606 OID 33662)
+-- Name: type_organisation type_organisation_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.type_organisation
+    ADD CONSTRAINT type_organisation_pkey PRIMARY KEY (typeorganisationid);
+
+
+--
+-- TOC entry 3371 (class 2606 OID 16413)
 -- Name: utilisateurs utilisateurs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -601,7 +864,7 @@ ALTER TABLE ONLY public.utilisateurs
 
 
 --
--- TOC entry 3340 (class 1259 OID 16438)
+-- TOC entry 3374 (class 1259 OID 16438)
 -- Name: categorie_incident_id_idx; Type: INDEX; Schema: public; Owner: asuna
 --
 
@@ -609,7 +872,23 @@ CREATE INDEX categorie_incident_id_idx ON public.categorie_incident USING btree 
 
 
 --
--- TOC entry 3356 (class 2606 OID 16463)
+-- TOC entry 3389 (class 1259 OID 33686)
+-- Name: idx_organisation_type_id; Type: INDEX; Schema: public; Owner: asuna
+--
+
+CREATE INDEX idx_organisation_type_id ON public.organisation USING btree (typeorganisationid);
+
+
+--
+-- TOC entry 3390 (class 1259 OID 33685)
+-- Name: idx_organisation_userid; Type: INDEX; Schema: public; Owner: asuna
+--
+
+CREATE INDEX idx_organisation_userid ON public.organisation USING btree (userid);
+
+
+--
+-- TOC entry 3402 (class 2606 OID 16463)
 -- Name: article article_utilisateurs_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -618,7 +897,25 @@ ALTER TABLE ONLY public.article
 
 
 --
--- TOC entry 3354 (class 2606 OID 16451)
+-- TOC entry 3406 (class 2606 OID 33734)
+-- Name: assignercategorieutilisateurorg assignercategorieutilisateurorg_organisation_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.assignercategorieutilisateurorg
+    ADD CONSTRAINT assignercategorieutilisateurorg_organisation_fk FOREIGN KEY (organisationid) REFERENCES public.organisation(organisationid);
+
+
+--
+-- TOC entry 3407 (class 2606 OID 33739)
+-- Name: assignercategorieutilisateurorg assignercategorieutilisateurorg_utilisateurs_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.assignercategorieutilisateurorg
+    ADD CONSTRAINT assignercategorieutilisateurorg_utilisateurs_fk FOREIGN KEY (userid) REFERENCES public.utilisateurs(userid);
+
+
+--
+-- TOC entry 3400 (class 2606 OID 16451)
 -- Name: attribuerdossier attribuerdossier_incident_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -627,7 +924,7 @@ ALTER TABLE ONLY public.attribuerdossier
 
 
 --
--- TOC entry 3355 (class 2606 OID 16446)
+-- TOC entry 3401 (class 2606 OID 16446)
 -- Name: attribuerdossier attribuerdossier_utilisateurs_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -636,7 +933,34 @@ ALTER TABLE ONLY public.attribuerdossier
 
 
 --
--- TOC entry 3352 (class 2606 OID 16431)
+-- TOC entry 3405 (class 2606 OID 33729)
+-- Name: categorieutilisateurorg categorieutilisateurorg_organisation_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.categorieutilisateurorg
+    ADD CONSTRAINT categorieutilisateurorg_organisation_fk FOREIGN KEY (organisationid) REFERENCES public.organisation(organisationid);
+
+
+--
+-- TOC entry 3403 (class 2606 OID 33675)
+-- Name: organisation fk_organisation_type; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.organisation
+    ADD CONSTRAINT fk_organisation_type FOREIGN KEY (typeorganisationid) REFERENCES public.type_organisation(typeorganisationid) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 3404 (class 2606 OID 33680)
+-- Name: organisation fk_organisation_user; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.organisation
+    ADD CONSTRAINT fk_organisation_user FOREIGN KEY (userid) REFERENCES public.utilisateurs(userid) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3398 (class 2606 OID 16431)
 -- Name: incident incident_categorie_incident_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -645,7 +969,7 @@ ALTER TABLE ONLY public.incident
 
 
 --
--- TOC entry 3353 (class 2606 OID 33544)
+-- TOC entry 3399 (class 2606 OID 33544)
 -- Name: incident incident_utilisateurs_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -654,7 +978,7 @@ ALTER TABLE ONLY public.incident
 
 
 --
--- TOC entry 3351 (class 2606 OID 33539)
+-- TOC entry 3397 (class 2606 OID 33539)
 -- Name: utilisateurs utilisateurs_categorieutilisateur_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -662,11 +986,11 @@ ALTER TABLE ONLY public.utilisateurs
     ADD CONSTRAINT utilisateurs_categorieutilisateur_fk FOREIGN KEY (categorieutilisateurid) REFERENCES public.categorieutilisateur(categorieutilisateurid);
 
 
--- Completed on 2026-08-30 19:53:02 CAT
+-- Completed on 2026-09-11 21:00:00 CAT
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict oRPGhqN488PAtd0JhXeFeQdNw2MINl71CxjsqTBEKdmoLVKXO2b4JVMkhyHYP7z
+\unrestrict DtwB2DusZYtyTpMIU8U7HiFV4Fx4EILtbIGmfh2vTZUTJdjDqzW4Fzguzgu2zZx
 

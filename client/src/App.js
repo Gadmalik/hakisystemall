@@ -23,6 +23,8 @@ import { Signalement } from './layout/Mysignalement';
 import { WaitingOrgPage, WaitingPage } from './layout/waitingPage';
 import { OrganisationsList } from './layout/organisation';
 import { CategorieUtilisateursOrg } from './layout/Categorieutilisateurorg';
+import { UtilisateursOrg } from './layout/Utilisateursorg';
+import { ConfirmInvitation } from './layout/confirmInvitation';
 function App() {
   // routes 
   return (
@@ -47,7 +49,9 @@ function App() {
           <Route path="mysignalement" element={<Signalement />} />
           <Route path="organisations" element={<OrganisationsList />} />
           <Route path="categorieutilisateurorg" element={<CategorieUtilisateursOrg />} />
+          <Route path="utilisateursorg" element={<UtilisateursOrg />} />
         </Route>
+        <Route path="/confirm-invitation/:code/:email" element={<ConfirmInvitation />} />
         <Route path="/articles/:id" element={<SingleArticl />} />
         <Route path="/profile/:username" element={<Profile />} />
         <Route path="/articles" element={<ListArticles />} />
