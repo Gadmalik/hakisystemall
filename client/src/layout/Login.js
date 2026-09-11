@@ -31,35 +31,39 @@ export function Login() {
                     "Content-Type": "application/json",
                 },
             }).then((reponse) => reponse.json()).then(async(data) => {
-                if(data.status === "success") {
-                    await localStorage.setItem("userinfo", JSON.stringify(data.data));
-                    navigate("/home");
-                }else{
-                    if(data.code == 'en_attente') {
-                        setError("Votre compte est en attente de validation");
-                        setLoaderVisible(false);
-                        setVisiblemdp(false);
-                        setTimeout(() => {
-                            setError("");
-                        }, 8000);
-                        return;
-                    }else if(data.code == 'inactif') {
-                        setError("Votre compte est inactif");
-                        setLoaderVisible(false);
-                        setVisiblemdp(false);
-                        setTimeout(() => {
-                            setError("");
-                        }, 8000);
-                        return;
+                console.log(data);
+                if(data.success){
+                    if(data.data.organisation){
+                        if(data.data.organisationid){
+                            if(data.data.ogstatus =="en_attente"){
+                                await localStorage.setItem("userinfo", JSON.stringify(data.data));
+                                navigate("/welcome");
+                            }else if(data.data.ogstatus =="refuse" ){
+
+                                await localStorage.setItem("userinfo", JSON.stringify(data.data));
+                                // navigate("/home");
+                            }else if(data.data.ogstatus =="actif" ){
+                                await localStorage.setItem("userinfo", JSON.stringify(data.data));
+                                navigate("/home");
+                            }else {
+                                
+                            }
+                        }else{
+                            await localStorage.setItem("userinfo", JSON.stringify(data.data));
+                            navigate("/organisation");
+                        }
                     }else{
-                        setError(data.message);
+                        await localStorage.setItem("userinfo", JSON.stringify(data.data));
+                        navigate("/home");
                     }
+                }else{
+                    setError(data.message);
                 }
+
                 setUserLogin({
                     identifiant: "",
                     mdp: ""
                 });
-
                 setLoaderVisible(false);
                 setVisiblemdp(false);
                 setTimeout(() => {

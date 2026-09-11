@@ -1,7 +1,17 @@
 'use client';
 import { useEffect, useState } from "react";
-import { Loader, MiniLoader } from "./MiniComp";
+import { InputForm, Loader, MiniLoader, SelectForm } from "./MiniComp";
 import { Editor } from "./Editor";
+import countries from "i18n-iso-countries";
+import frLocale from "i18n-iso-countries/langs/fr.json";
+import { useNavigate } from "react-router-dom";
+
+// Enregistrer la langue française
+countries.registerLocale(frLocale);
+
+// Obtenir un objet { FR: "France", BE: "Belgique", ... }
+const countryList = countries.getNames("fr", { select: "official" });
+
 const link = process.env.REACT_APP_LINK;
 export function FormUser({data, hideModal}){
     return (
@@ -172,9 +182,241 @@ export function FormSignaler ({data, hideModal, onSubmit}) {
     </>)
 }
 
+export function FormOrganisation ({data, hideModal, onSubmit}){
+    
+    const link = process.env.REACT_APP_LINK;
+    const navigate = useNavigate();
+    const [userinfo,setUserInfo] = useState(JSON.parse(localStorage.getItem("userinfo")));
+    const [visibleLoader, setVisibleLoader] = useState(false);
+    const [listTypeOrganisation, setListTypeOrganisation] = useState([]);
+    const [organisation, setOrganisation] = useState({
+        designation:"",
+        sigle:"",
+        typeorganisationid:"",
+        pays:"",
+        province:"",
+        ville:"",
+        adresse_org:"",
+        telephone_org:"",
+        email_org:"",
+        site_web:"",
+        reseaux_sociaux:"",
+        logo_url:"",
+        userid:userinfo?.userid
+    })
+    const [errors, setErrors] = useState({
+        designation:"",
+        sigle:"",
+        typeorganisationid:"",
+        pays:"",
+        province:"",
+        ville:"",
+        adresse_org:"",
+        telephone_org:"",
+        email_org:"",
+        site_web:"",
+        reseaux_sociaux:"",
+        logo_url:"",
+        userid:""
+    })
+    const loadTypeOrganisation = async () => {
+        try {
+            await fetch(`${link}/typeorganisation`, {
+                method: "get",
+            }).then((reponse) => reponse.json()).then((data) => {
+                console.log(data);
+                setListTypeOrganisation(data?.data);
+                setVisibleLoader(false);
+            }).catch((error) => {
+                console.log(error);
+                setVisibleLoader(false);
+            });
+        } catch (error) {
+            console.log(error);
+            setVisibleLoader(false);
+
+        }
+    }
+    const ajouter = async (event) => {
+        console.log(userinfo)
+        event.preventDefault();
+        const formData = new FormData();
+        formData.append("designation", organisation.designation);
+        formData.append("sigle", organisation.sigle);
+        formData.append("typeorganisationid", organisation.typeorganisationid);
+        formData.append("pays", organisation.pays);
+        formData.append("province", organisation.province);
+        formData.append("ville", organisation.ville);
+        formData.append("adresse_org", organisation.adresse_org);
+        formData.append("telephone_org", organisation.telephone_org);
+        formData.append("email_org", organisation.email_org);
+        formData.append("site_web", organisation.site_web);
+        formData.append("reseaux_sociaux", organisation.reseaux_sociaux);
+        formData.append("logo_url", organisation.logo_url);
+        formData.append("userid", userinfo.userid);
+
+        try {
+            setVisibleLoader(true);
+            await fetch(`${link}/organisation/add`, {
+                method: "post",
+                body: formData,
+            }).then((reponse) => reponse.json()).then((data) => {
+                console.log(data);
+                if(data.success){
+                    setVisibleLoader(false);
+                    alert(data.message);
+                    hideModal();
+                    setErrors({});
+                    setOrganisation({...organisation, designation: "", sigle: "", typeorganisationid: "", pays: "", province: "", ville: "", adresse_org: "", telephone_org: "", email_org: "", site_web: "", reseaux_sociaux: "", logo_url: ""});
+                    navigate("/welcome");
+                }else{
+                    setVisibleLoader(false);
+                    setErrors({message:data.error});
+                }
+            }).catch((error) => {
+                console.log(error);
+                setVisibleLoader(false);
+            });
+        } catch (error) {
+            console.log(error);
+            setVisibleLoader(false);
+
+        }
+    }
+    useEffect(() => {
+        loadTypeOrganisation();
+    }, [])
+    return (
+        <form id="incidentForm" onSubmit={(event) => ajouter(event)}>
+            <div class="modal-form-grid">
+                <InputForm value={organisation.designation} onchange={(value) => setOrganisation({...organisation, designation: value})} placeholder="Ex: Lonford" type="text" label="Designation de l'organisation" id="designation" require={true} error={errors.designation} icon="building"/>
+                <InputForm value={organisation.sigle} onchange={(value) => setOrganisation({...organisation, sigle: value})} placeholder="Ex: LFD" type="text" label="Sigle de l'organisation" id="designation" require={true} error={errors.sigle} icon="tag"/>
+                <SelectForm error={errors.typeorganisationid} icon={"building"} label={"Categorie d'organisation"} require={true} options={listTypeOrganisation.map((item) => {return {label: item.libelle, value: item.typeorganisationid}})} onchange={(value) => setOrganisation({...organisation, typeorganisationid: value})} />
+                <SelectForm icon={"globe"} label={"Pays"} require={true} options={Object.entries(countryList).map(([key, value]) => {return {label: value, value: key}})} onchange={(value) => setOrganisation({...organisation, pays: value})} />
+                <InputForm value={organisation.province} onchange={(value) => setOrganisation({...organisation, province: value})} placeholder="Ex: Sud Ouest" type="text" label="Province" id="province" require={true} error={errors.province} icon="map-marker"/>
+                <InputForm value={organisation.ville} onchange={(value) => setOrganisation({...organisation, ville: value})} placeholder="Ex: Buea" type="text" label="Ville" id="ville" require={true} error={errors.ville} icon="map-marker"/>
+                <InputForm value={organisation.adresse_org} onchange={(value) => setOrganisation({...organisation, adresse_org: value})} placeholder="Ex: Rue de la paix" type="text" label="Adresse" id="adresse" require={true} error={errors.adresse} icon="map-marker"/>
+                <InputForm value={organisation.telephone_org} onchange={(value) => setOrganisation({...organisation, telephone_org: value})} placeholder="Ex: 699 99 99 99" type="text" label="Telephone" id="telephone" require={true} error={errors.telephone_org} icon="phone"/>
+                <InputForm value={organisation.email_org} onchange={(value) => setOrganisation({...organisation, email_org: value})} placeholder="Ex: [EMAIL_ADDRESS]" type="text" label="Email" id="email" require={true} error={errors.email_org} icon="envelope"/>
+                <InputForm value={organisation.site_web} onchange={(value) => setOrganisation({...organisation, site_web: value})} placeholder="Ex: www.lonford.org" type="text" label="Site Web" id="site_web" require={false} error={errors.site_web} icon="globe"/>
+                <InputForm value={organisation.reseaux_sociaux} onchange={(value) => setOrganisation({...organisation, reseaux_sociaux: value})} placeholder="Ex: www.lonford.org" type="text" label="Reseaux Sociaux" id="reseaux_sociaux" require={false} error={errors.reseaux_sociaux} icon="globe"/>
+            </div>
+            <div class="modal-form-group">
+                <div className="flex items-center">
+                    <i className="fa-solid fa-upload"></i>
+                    <label>Logo de l'organisation</label>
+                </div>
+                <div class="file-upload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Cliquez pour ajouter des fichiers</p>
+                    <small>Max 20 Mo (PDF, JPG, PNG)</small>
+                    <input type="file" multiple id="logo-input" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => { setOrganisation({...organisation, logo_url: e.target.files[0]})}}  />
+                </div>
+                <div className="logo-container" align="center">
+                    {organisation.logo_url && (
+                        <div className="image-wrapper">
+                            <img src={URL.createObjectURL(organisation.logo_url)} alt="Aperçu" className="uploaded-image" />
+                            <button 
+                                type="button" 
+                                onClick={() => {
+                                    setOrganisation({...organisation, logo_url: null});
+                                    document.getElementById('logo-input').value = '';
+                                }}
+                                className="remove-btn"
+                                title="Supprimer l'image"
+                            >
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                    )}
+                    {!organisation.logo_url && (
+                        <div className="placeholder">
+                            <i className="fas fa-image"></i>
+                            <p>Aucune image sélectionnée</p>
+                        </div>
+                    )}
+                </div>
+            </div> 
+            <div class="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
+                <button type="submit" class="btn btn-primary"><i class={`fas fa-${ visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
+            </div>
+        </form>
+    )
+}
+
+export function FormCategorieutilisateurOrg({data, hideModal}){
+    const link = process.env.REACT_APP_LINK;
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
+    const [activePart, setActivePart] = useState(1);
+    const [categorieutilisateurorg, setCategorieutilisateurorg] = useState({
+        libelle:"",
+        description:"",
+        organisationid:user.organisationid,
+    });
+    const [error, setError] = useState("");
+    const [visibleLoader, setVisibleLoader] = useState(false);
+    const ajouter = async (event) => {
+        event.preventDefault();
+
+        setVisibleLoader(true);
+        await fetch(`${link}/categorieutilisateurorg`, {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+            },
+            body:JSON.stringify(categorieutilisateurorg),
+        }).then((res) => res.json()).then((data) => {
+            console.log(data);
+            
+            setVisibleLoader(false);
+            if(data.status =="success"){
+                alert("Categorie d'utilisateur d'organisation ajoutée avec succès !");
+                hideModal();
+                setCategorieutilisateurorg({
+                    libelle:"",
+                    description:"",
+                    organisationid:user.organisationid,
+                });
+                setError("")
+            }else{
+                setError(data.message);
+            }
+        }).catch((error) => {
+            setError("Une erreur s'est produite ! ");
+            console.error(error);
+            setVisibleLoader(false);
+        })
+    }
+
+    return(
+        <form onSubmit={ajouter} className="form-container">
+            <div class="stepper">
+                <div class="stepper-progress" id="progress" style={{width: `${(activePart - 1) * 50}%`}}></div>
+
+                <div class={`step ${activePart == 1 ? 'active' : activePart > 1 ? 'completed' : ''}`}>
+                    <div class="step-number">{activePart > 1 ? '✓' : 1}</div>
+                    <div class="step-label">Informations</div>
+                </div>
+                
+                <div class={`step ${activePart == 2 ? 'active' : activePart > 2 ? 'completed' : ''}`}>
+                    <div class="step-number">{activePart > 2 ? '✓' : 2}</div>
+                    <div class="step-label">Rôles</div>
+                </div>
+            </div>
+            <div class="modal-form-grid">
+                <InputForm value={categorieutilisateurorg.libelle} onchange={(value) => setCategorieutilisateurorg({...categorieutilisateurorg, libelle:value})} placeholder="Ex: Redacteur" type="text" label="Libelle" id="libelle" require={true} error={error} icon="user"/>
+                <InputForm value={categorieutilisateurorg.description} onchange={(value) => setCategorieutilisateurorg({...categorieutilisateurorg, description:value})} placeholder="Ex: Utilisateurs redacteurs" type="text" label="Description" id="description" require={true} error={error} icon="info"/>
+            </div>
+            <div className="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
+                <button type="submit" className="btn btn-primary"><i className={`fas fa-${visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
+            </div>
+        </form>
+    )
+}
+
 export function FormTypeIncident ({data, hideModal}){
 
-    const link = process.env.LINK_BACKEND;
+    const link = process.env.REACT_APP_LINK;
     const [typeincident, setTypeincident] = useState({
         designation:"",
         niveau:"",

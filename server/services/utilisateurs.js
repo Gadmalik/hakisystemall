@@ -26,7 +26,7 @@ export async function AddUtilisateur(data){
     if(verif_categorie.data.confirm){
         etat = "en attente";
     }
-    const result = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, code, etat, categorieutilisateurid, adresse,date_create) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", [data.nom, data.prenom, data.phone, data.email, data.username, data.code, etat, data.categorie, data.adresse, data.date_create]);
+    const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, code, etat, categorieutilisateurid, adresse,date_create) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.code, etat, data.categorie, data.adresse, data.date_create]);
     return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true};
 }
 
@@ -69,9 +69,12 @@ export async function SetMdpUtilisateur(data){
         if(verif_user.rows.length === 0){
             return {message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false};
         }
-        const setMdp = await pool.query("UPDATE utilisateurs SET mdp = $1, code = $2 WHERE userid=$3", [hashmdp, null, data.userid]);
+        const setMdp = await pool.query("UPDATE utilisateurs SET mdp = $1, code = $2 WHERE userid=$3 RETURNING *", [hashmdp, null, data.userid]);
         if(setMdp.rowCount > 0){
-            return {message:"Mot de passe mis à jour avec succès !", status:"success", code:"success", success:true};
+            const categorieutilisateur = await getCategorieUtilisateurById(setMdp.rows[0].categorieutilisateurid);
+            console.log(categorieutilisateur, setMdp.categorieutilisateurid);
+            const organisation = await pool.query("SELECT * FROM organisation WHERE userid=$1", [data.userid]);
+            return {message:"Mot de passe mis à jour avec succès !", status:"success", code:"success", success:true, data:{categorieutilisateur: categorieutilisateur.data, user: setMdp.rows[0], organisation: organisation.rows[0]}};
         }
         return {message:"Une erreur s'est produite !", status:"error", code:"code_invalid", error: setMdp, success:false};
     }catch(error){
@@ -135,6 +138,7 @@ export async function getCategorieUtilisateur(){
 export async function getCategorieUtilisateurById(categorieutilisateurid){
     try{
         const result = await pool.query("SELECT * FROM categorieutilisateur WHERE categorieutilisateurid = $1", [categorieutilisateurid]);
+        console.log(categorieutilisateurid)
         return {data: result.rows[0], status:"success", code:"success", success:true};
     }catch(error){
         console.log(error);
@@ -144,7 +148,7 @@ export async function getCategorieUtilisateurById(categorieutilisateurid){
 
 export async function login(data){
     try{
-        const user = await pool.query("SELECT * FROM utilisateurs WHERE (phone = $1 OR email = $1 OR username = $1)", [data.identifiant]);
+        const user = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE (util.phone = $1 OR util.email = $1 OR util.username = $1)", [data.identifiant]);
         if(user.rows.length === 0){
             return {message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false};
         }
@@ -155,7 +159,7 @@ export async function login(data){
         if(user.rows[0].etat === "inactif"){
             return {message:"Votre compte est inactif !", status:"error", code:"inactif", success:false};
         }else if(user.rows[0].etat === "en attente"){
-            return {message:"Votre compte est en attente de validation !", status:"error", code:"en_attente", success:false};
+            return {message:"Votre compte est en attente de validation !", status:"en_attente", code:"en_attente", success:true};
         }
         return {data: user.rows[0], status:"success", code:"success", success:true};
     }catch(error){

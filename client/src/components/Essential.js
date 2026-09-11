@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 import { useNavigate } from "react-router-dom";
-import { FormArticle, FormEditProfile, FormSignaler, FormTypeIncident, FormUser } from "./Forms";
+import { FormArticle, FormCategorieutilisateurOrg, FormEditProfile, FormOrganisation, FormSignaler, FormTypeIncident, FormUser } from "./Forms";
 import { MenuItem } from "./MiniComp";
 export function SideBar() {
     const [activeMenu, setActiveMenu] = useState("dashboard");
@@ -17,6 +17,8 @@ export function SideBar() {
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="chart-pie" label="Dashboard" page="dashboard" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="folder-open" label="Dossiers" page="dossiers" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="exclamation-triangle" label="Mes signalements" page="mysignalement" />
+            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="institution" label="Organisations" page="organisations" />
+            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="user-tag" label="Categories d'utilisateurs" page="categorieutilisateurorg" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="users" label="Utilisateurs" page="utilisateurs" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="newspaper" label="Articles (Éduc)" page="articles" />
             <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="gear" label="Paramètres" page="parametres" />
@@ -41,7 +43,7 @@ export function Header({title, searchFunction}) {
         await fetch(link+"/notification/send", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userid: user.userid, title: "Test", body: "Test", url: "/" })
+            body: JSON.stringify({ userid: user.userid, title: "Test", body: "Test", url: "https://hakisystem.net/home/dashboard" })
         });
     }
     useEffect(() => {
@@ -109,6 +111,10 @@ export function Modal({visible, setVisible, data, title, hideModal, onSubmit}){
             setForm(<FormArticle data={dataSend} hideModal={closeModal} />);
         }else if(data?.form == "formEditProfile"){
             setForm(<FormEditProfile data={dataSend} hideModal={closeModal} />);
+        }else if(data?.form == "formOrganisation"){
+            setForm(<FormOrganisation data={dataSend} hideModal={closeModal} />);
+        }else if(data?.form == "formcategorieutilisateurorg"){
+            setForm(<FormCategorieutilisateurOrg data={dataSend} hideModal={closeModal} />);
         }else{
 
         }

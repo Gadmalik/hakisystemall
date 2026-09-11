@@ -10,11 +10,14 @@ import { ConfirmMail } from "./services/mailsModel.js";
 import { sendMail } from "./services/mail.js";
 import { AddSignalement, getIncidentByUser } from "./services/incident.js";
 import { SendNotification, SubscribeUser } from "./services/notification.js";
+import { actionOrganisations, addOrganisation, getOrganisations, getTypeOrganisation } from "./services/organisation.js";
+import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, getcategorieutilisateurOrg, getUtilisateursByOrganisationId } from "./services/categorieutilisateurs.js";
 
 // recréer __filename et __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const upload = multer({dest:"uploads"});
+const uploadlogo = multer({dest:"uploads/logo"});
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -43,15 +46,18 @@ app.post("/user", async (req, res) => {
     try{
         const {nom, prenom, phone, email, username, categorie, adresse =""} = req.body;
         console.log(req.body)
+        const malik = "";
         const date = new Date();
         const date_create = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
         const code = Math.floor(100000 + Math.random() * 900000);
         const textmail = ConfirmMail(`${nom} ${prenom}`, code);
         const result = await AddUtilisateur({nom, prenom, phone, email, username, categorie, adresse, date_create,code});
-        const sendmail = await sendMail({to:email, subject:"Confirmation de votre compte", text:textmail});
-        if(!sendmail.success){
-            res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: sendmail.error});
-            return;
+        if(result.status){
+            const sendmail = await sendMail({to:email, subject:"Confirmation de votre compte", text:textmail});
+            if(!sendmail.success){
+                res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: sendmail.error});
+            }
+
         }
         res.json(result);
     }catch(error){
@@ -126,6 +132,94 @@ app.get("/get_categorie", async (req, res) => {
     }catch(error){
         console.log(error);
         res.json({message:"Une erreur s'est produite !", status:"error", code:"error", error});
+    }
+})
+
+app.get("/typeorganisation", async (req, res) => {
+    try{
+        const reponse = await getTypeOrganisation();
+        res.json({...reponse});
+    }catch(error){
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"error", error});
+    }
+})
+
+app.post("/organisation/add",uploadlogo.single("logo_url"), async (req, res) => {
+    try{
+        const logo_url = req.file ? `/logo/${req.file.filename}` : null;
+        console.log(logo_url);
+        const {designation, sigle, typeorganisationid, pays, province, ville, adresse_org, phone_org, email_org, site_web, reseaux_sociaux, userid} = req.body;
+        const reponse = await addOrganisation({designation, sigle, typeorganisationid, pays, province, ville, adresse_org, phone_org, email_org, site_web, reseaux_sociaux, logo_url, userid});
+        res.json({...reponse});
+    }catch(error){
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
+    }
+})
+
+app.get("/organisations", async (req, res) => {
+    try{
+        const reponse = await getOrganisations();
+        res.json({...reponse});
+    }catch(error){
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"error", error});
+    }
+})
+
+app.post("/organisation/:action", async (req, res) => {
+    try{
+        const {action} = req.params;
+        const reponse = await actionOrganisations({action, ...req.body});
+        res.json({...reponse});
+    }catch(error){
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
+    }
+})
+
+app.get("/categorieutilisateurorg/:organisationid", async (req, res) => {
+    try{
+        const {organisationid} = req.params;
+        const reponse = await getUtilisateursByOrganisationId({organisationid});
+        res.json({...reponse});
+    }catch(error){
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
+    }
+})
+
+app.post("/assignercategorieutilisateurorg", async (req, res) => {
+    try{
+        const {categorieutilisateurorgid, userid} = req.body;
+        const reponse = await addAssignerCategorieUtilisateur({categorieutilisateurorgid, userid});
+        res.json({...reponse});
+    }catch(error){
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
+    }
+})
+
+app.post("/categorieutilisateurorg", async (req, res) => {
+    try{
+        const {libelle, description, organisationid, userid} = req.body;
+        const reponse = await addCategorieUtilisateurOrg({libelle, description, organisationid, userid});
+        res.json({...reponse});
+    }catch(error){
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
+    }
+})
+
+app.get("/getcategorieutilisateurorg/:organisationid", async (req, res) => {
+    try {
+        const {organisationid} = req.params;
+        const reponse = await getcategorieutilisateurOrg({organisationid});
+        res.json({...reponse});
+    } catch (error) {
+        console.log(error);
+        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
     }
 })
 

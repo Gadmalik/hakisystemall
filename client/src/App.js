@@ -6,6 +6,8 @@ import { Utilisateurs } from './layout/Utilisateurs';
 import './styles/tableau.css';
 import './styles/home.css';
 import './styles/profile.css';
+import './styles/welcome.css';
+import './styles/organisation.css';
 // editor 
 import '@mantine/core/styles.css';
 import '@mantine/tiptap/styles.css';
@@ -18,6 +20,9 @@ import { SingleArticl } from './layout/SingleArticl';
 import { Profile } from './layout/Profile';
 import { ListArticles } from './layout/ListArticles';
 import { Signalement } from './layout/Mysignalement';
+import { WaitingOrgPage, WaitingPage } from './layout/waitingPage';
+import { OrganisationsList } from './layout/organisation';
+import { CategorieUtilisateursOrg } from './layout/Categorieutilisateurorg';
 function App() {
   // routes 
   return (
@@ -26,6 +31,8 @@ function App() {
         <Route path="*" element={<Welcome />} />
         <Route path="/inscription" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/welcome" element={<WaitingPage />} />
+        <Route path="/organisation" element={<WaitingOrgPage />} />
         <Route path="/home" element={<Home />} >
           <Route path="/home" element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
@@ -38,6 +45,8 @@ function App() {
           <Route path="profile/:username" element={<Profile />} />
           <Route path="article/:id" element={<SingleArticl />} />
           <Route path="mysignalement" element={<Signalement />} />
+          <Route path="organisations" element={<OrganisationsList />} />
+          <Route path="categorieutilisateurorg" element={<CategorieUtilisateursOrg />} />
         </Route>
         <Route path="/articles/:id" element={<SingleArticl />} />
         <Route path="/profile/:username" element={<Profile />} />

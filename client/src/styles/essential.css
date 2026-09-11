@@ -963,6 +963,10 @@ body {
         min-height: 100vh;
     }
 
+    .floating-actions {
+        bottom: 80px;
+    }
+
     .sidebar {
         width: 100%;
         height: 65px;

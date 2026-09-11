@@ -270,8 +270,25 @@ export function Register () {
 
             if (data.status === "success") {
                 console.log(data)
-                alert("Inscription reussie")
-                navigate("/login");
+                alert("Inscription reussie");
+
+                const user = {...data.data.user, ...data.data.categorieutilisateur, ...data.data.organisation};
+                if(data.data.categorieutilisateur.organisation){
+                    if(data.data.organisation){
+                        if(data.data.organisation.status == "en_attente"){
+                            navigate("/welcome");
+                        }
+                    }else{
+                        localStorage.setItem("userinfo", JSON.stringify(user));
+                        navigate("/organisation");
+                    }
+                }else{
+                    if(data.data.user.status == "en_attente"){
+                        navigate("/welcome");
+                    }else{
+                        navigate("/login");
+                    }
+                } 
             } else {
                 const serverErrors = { message: data.message };
 
@@ -341,7 +358,7 @@ export function Register () {
                             <TextAreaForm value={userRegister.adresse} onchange={(value) => setUserRegister({...userRegister, adresse: value})} placeholder="Ex: 123 Rue de la Paix" label="Adresse" id="adresse" require={true} error={error.adresse} rows={3} icon="map-marker"/>
                         </div>
                         <div align="right">
-                            <button type="button" class="btn btn-primary" onClick={() => verifStep1()}>Suivant <i class="fas fa-arrow-right"></i></button>
+                            <button type="button" class="btn btn-primary" onClick={() => verifStep1()}>Suivant <i class={`fas fa-${loaderVisible ? 'spinner fa-pulse fa-fw loader-text' : 'arrow-right'}`}></i></button>
                         </div>
                     </div>
                     <div className={`${activePart == 2 ? 'active' : 'hidden'}`}>
@@ -350,7 +367,7 @@ export function Register () {
                             <InputForm value={userRegister.code} onchange={(value) => setUserRegister({...userRegister, code: value})} placeholder="Code de confirmation" type="text" label="Code de confirmation" id="code" require={true} error={error.code} icon="key"/>
                         </div>
                         <div align="right">
-                            <button type="button" class="btn btn-primary" onClick={() => verifStep2()}>Suivant <i class="fas fa-arrow-right"></i></button>
+                            <button type="button" class="btn btn-primary" onClick={() => verifStep2()}>Suivant <i class={`fas fa-${loaderVisible ? 'spinner fa-pulse fa-fw loader-text' : 'arrow-right'}`}></i></button>
                         </div>
                     </div>
                     <div className={`${activePart == 3 ? 'active' : 'hidden'}`}>
@@ -360,7 +377,7 @@ export function Register () {
                             <PasswordForm value={userRegister.confirm_mdp} onchange={(value) => setUserRegister({...userRegister, confirm_mdp: value})} placeholder="Confirmer le mot de passe" label="Confirmer le mot de passe" id="confirm_mdp" require={true} error={error.confirm_mdp} visiblemdp={visiblemdp2} setVisiblemdp={setVisiblemdp2} icon="lock"/>
                         </div>
                         <div align="center">
-                            <button type="button" class="btn btn-primary" onClick={() => verifStep3()}><i class="fas fa-save"></i> Enregistrer</button>
+                            <button type="button" class="btn btn-primary" onClick={() => verifStep3()}><i class={`fas fa-${loaderVisible ? 'spinner fa-pulse fa-fw loader-text' : 'arrow-right'}`}></i> Enregistrer</button>
                         </div>
                     </div>
                 </form>

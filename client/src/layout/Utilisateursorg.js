@@ -3,7 +3,7 @@ import { Header, Modal } from "../components/Essential";
 import { useNavigate } from "react-router-dom";
 import { HeaderButton } from "../components/MiniComp";
 
-export function Utilisateurs() {
+export function UtilisateursOrg() {
     const user = JSON.parse(localStorage.getItem("userinfo"));
     const [visibleModal, setVisibleModal] = useState(false);
     const [users, setUsers] = useState([]);
