@@ -2,6 +2,7 @@ import pool from "../db.js";
 import bcrypt from "bcrypt";
 
 export async function AddUtilisateur(data){
+    let config = true;
     if(!data.nom || !data.prenom || !data.phone || !data.email || !data.username || !data.categorie){
         return {message:"informations de connexion insuffisant !"};
     }
@@ -25,8 +26,9 @@ export async function AddUtilisateur(data){
     let etat = "actif";
     if(verif_categorie.data.confirm){
         etat = "en attente";
+        config = false;
     }
-    const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, code, etat, categorieutilisateurid, adresse,date_create) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.code, etat, data.categorie, data.adresse, data.date_create]);
+    const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, code, etat, categorieutilisateurid, adresse,date_create, config) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.code, etat, data.categorie, data.adresse, data.date_create, config]);
     return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true};
 }
 
@@ -123,8 +125,18 @@ export async function VerifPhone(data){
     return {message:"Telephone disponible !", status:"success", code:"success", success:true};
 }
 
-export function GetUtilisateur(data){
-    
+export async function GetUtilisateur(req, res){
+    const {id} = req.params;
+    try {
+        const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
+        if(result.rows.length === 0){
+            return res.status(404).json({message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false});
+        }
+        return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:"Une erreur s'est produite !", status:"error", code:"error", error: error, success:false});
+    }
 }
 
 export function UpdateUtilisateur(data){
@@ -135,29 +147,6 @@ export function DeleteUtilisateur(data){
     
 }
 
-export async function addCategorieUtilisateur(data){
-    try{
-        const verif = await pool.query("SELECT * FROM categorie_utilisateur WHERE designation = $1", [data.designation]);
-        if(verif.rows.length > 0){
-            return {message:"Categorie deja existante !", status:"error", code:"categorie_used", success:false};
-        }
-        const result = await pool.query("INSERT INTO categorieutilisateur (designation, description, date_create) VALUES ($1, $2, $3)", [data.designation, data.description, data.date_create]);
-        return {message:"Categorie ajoutée avec succès !", status:"success", code:"success", success:true};
-    }catch(error){
-        console.log(error);
-        return {message:"Une erreur s'est produite !", status:"error", code:"", error: error, success:false};
-    }
-}
-
-export async function getCategorieUtilisateur(){
-    try{
-        const result = await pool.query("SELECT * FROM categorieutilisateur");
-        return {data: result.rows, status:"success", code:"success", success:true};
-    }catch(error){
-        console.log(error);
-        return {message:"Une erreur s'est produite !", status:"error", code:"", error: error, success:false};
-    }
-}
 
 export async function getCategorieUtilisateurById(categorieutilisateurid){
     try{
@@ -183,7 +172,7 @@ export async function login(data){
         if(user.rows[0].etat === "inactif"){
             return {message:"Votre compte est inactif !", status:"error", code:"inactif", success:false};
         }else if(user.rows[0].etat === "en attente"){
-            return {message:"Votre compte est en attente de validation !", status:"en_attente", code:"en_attente", success:true};
+            return {message:"Votre compte est en attente de validation !", status:"en_attente", code:"en_attente", success:true, data: user.rows[0]};
         }
         return {data: user.rows[0], status:"success", code:"success", success:true};
     }catch(error){

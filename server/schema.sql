@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict DtwB2DusZYtyTpMIU8U7HiFV4Fx4EILtbIGmfh2vTZUTJdjDqzW4Fzguzgu2zZx
+\restrict 3P8Byf6RUhwpnyLTViaPsci6C1Ab5P6N3hnVTdW5oYQBVqlAZKKe33Elej531hw
 
 -- Dumped from database version 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)
 
--- Started on 2026-09-11 20:59:59 CAT
+-- Started on 2026-09-18 18:09:32 CAT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -59,7 +59,7 @@ CREATE SEQUENCE public.article_articleid_seq
 ALTER SEQUENCE public.article_articleid_seq OWNER TO asuna;
 
 --
--- TOC entry 3576 (class 0 OID 0)
+-- TOC entry 3615 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: article_articleid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -84,6 +84,38 @@ CREATE TABLE public.assignercategorieutilisateurorg (
 
 
 ALTER TABLE public.assignercategorieutilisateurorg OWNER TO asuna;
+
+--
+-- TOC entry 237 (class 1259 OID 33782)
+-- Name: assignerdomaine; Type: TABLE; Schema: public; Owner: asuna
+--
+
+CREATE TABLE public.assignerdomaine (
+    assignerdomaineid uuid DEFAULT gen_random_uuid() NOT NULL,
+    organisationid uuid,
+    categorie_id integer NOT NULL,
+    status character varying(10) DEFAULT 'actif'::character varying NOT NULL,
+    userid integer
+);
+
+
+ALTER TABLE public.assignerdomaine OWNER TO asuna;
+
+--
+-- TOC entry 236 (class 1259 OID 33768)
+-- Name: assignerfonctionnalites; Type: TABLE; Schema: public; Owner: asuna
+--
+
+CREATE TABLE public.assignerfonctionnalites (
+    fonctionnaliteid uuid NOT NULL,
+    categorieutilisateurid integer NOT NULL,
+    compte character varying(10) DEFAULT 'main'::character varying NOT NULL,
+    assignerfonctionnalitesid uuid DEFAULT gen_random_uuid() NOT NULL,
+    status character varying(10) DEFAULT 'actif'::character varying NOT NULL
+);
+
+
+ALTER TABLE public.assignerfonctionnalites OWNER TO asuna;
 
 --
 -- TOC entry 222 (class 1259 OID 16440)
@@ -118,7 +150,7 @@ CREATE SEQUENCE public.attribuerdossier_attribuerid_seq
 ALTER SEQUENCE public.attribuerdossier_attribuerid_seq OWNER TO asuna;
 
 --
--- TOC entry 3577 (class 0 OID 0)
+-- TOC entry 3616 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: attribuerdossier_attribuerid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -153,7 +185,8 @@ CREATE TABLE public.categorieutilisateur (
     description text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     confirm boolean DEFAULT true NOT NULL,
-    organisation boolean DEFAULT false NOT NULL
+    organisation boolean DEFAULT false NOT NULL,
+    status character varying(10) DEFAULT 'actif'::character varying NOT NULL
 );
 
 
@@ -176,7 +209,7 @@ CREATE SEQUENCE public.categorieutilisateur_categorieutilisateurid_seq
 ALTER SEQUENCE public.categorieutilisateur_categorieutilisateurid_seq OWNER TO asuna;
 
 --
--- TOC entry 3578 (class 0 OID 0)
+-- TOC entry 3617 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: categorieutilisateur_categorieutilisateurid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -218,7 +251,7 @@ CREATE SEQUENCE public.categorieutilisateurorg_categorieutilisateurorgid_seq
 ALTER SEQUENCE public.categorieutilisateurorg_categorieutilisateurorgid_seq OWNER TO asuna;
 
 --
--- TOC entry 3579 (class 0 OID 0)
+-- TOC entry 3618 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: categorieutilisateurorg_categorieutilisateurorgid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -243,13 +276,34 @@ CREATE SEQUENCE public.cateogie_incident_id_seq
 ALTER SEQUENCE public.cateogie_incident_id_seq OWNER TO asuna;
 
 --
--- TOC entry 3580 (class 0 OID 0)
+-- TOC entry 3619 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: cateogie_incident_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
 
 ALTER SEQUENCE public.cateogie_incident_id_seq OWNED BY public.categorie_incident.categorie_id;
 
+
+--
+-- TOC entry 235 (class 1259 OID 33747)
+-- Name: fonctionnalites; Type: TABLE; Schema: public; Owner: asuna
+--
+
+CREATE TABLE public.fonctionnalites (
+    fonctionnaliteid uuid DEFAULT gen_random_uuid() NOT NULL,
+    designation character varying(150) NOT NULL,
+    description text,
+    icone character varying(100),
+    route character varying(255),
+    parentid uuid,
+    ordre_affichage integer DEFAULT 0,
+    status boolean DEFAULT true,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.fonctionnalites OWNER TO asuna;
 
 --
 -- TOC entry 220 (class 1259 OID 16422)
@@ -290,7 +344,7 @@ CREATE SEQUENCE public.incident_id_incident_seq
 ALTER SEQUENCE public.incident_id_incident_seq OWNER TO asuna;
 
 --
--- TOC entry 3581 (class 0 OID 0)
+-- TOC entry 3620 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: incident_id_incident_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -320,7 +374,8 @@ CREATE TABLE public.organisation (
     userid integer NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    status character varying DEFAULT 'en_attente'::character varying NOT NULL
+    status character varying DEFAULT 'en_attente'::character varying NOT NULL,
+    config boolean DEFAULT false NOT NULL
 );
 
 
@@ -358,7 +413,7 @@ CREATE SEQUENCE public.push_subscriptions_id_seq
 ALTER SEQUENCE public.push_subscriptions_id_seq OWNER TO asuna;
 
 --
--- TOC entry 3582 (class 0 OID 0)
+-- TOC entry 3621 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: push_subscriptions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -398,7 +453,7 @@ CREATE SEQUENCE public.type_organisation_typeorganisationid_seq
 ALTER SEQUENCE public.type_organisation_typeorganisationid_seq OWNER TO asuna;
 
 --
--- TOC entry 3583 (class 0 OID 0)
+-- TOC entry 3622 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: type_organisation_typeorganisationid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: asuna
 --
@@ -424,7 +479,8 @@ CREATE TABLE public.utilisateurs (
     username character(50) NOT NULL,
     adresse text,
     prenom character varying,
-    categorieutilisateurid integer
+    categorieutilisateurid integer,
+    config boolean DEFAULT true NOT NULL
 );
 
 
@@ -447,7 +503,7 @@ CREATE SEQUENCE public.utilisateurs_userid_seq
 ALTER SEQUENCE public.utilisateurs_userid_seq OWNER TO postgres;
 
 --
--- TOC entry 3584 (class 0 OID 0)
+-- TOC entry 3623 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: utilisateurs_userid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -456,7 +512,7 @@ ALTER SEQUENCE public.utilisateurs_userid_seq OWNED BY public.utilisateurs.useri
 
 
 --
--- TOC entry 3349 (class 2604 OID 16460)
+-- TOC entry 3362 (class 2604 OID 16460)
 -- Name: article articleid; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -464,7 +520,7 @@ ALTER TABLE ONLY public.article ALTER COLUMN articleid SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 3348 (class 2604 OID 16443)
+-- TOC entry 3361 (class 2604 OID 16443)
 -- Name: attribuerdossier attribuerid; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -472,7 +528,7 @@ ALTER TABLE ONLY public.attribuerdossier ALTER COLUMN attribuerid SET DEFAULT ne
 
 
 --
--- TOC entry 3345 (class 2604 OID 16418)
+-- TOC entry 3358 (class 2604 OID 16418)
 -- Name: categorie_incident categorie_id; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -480,7 +536,7 @@ ALTER TABLE ONLY public.categorie_incident ALTER COLUMN categorie_id SET DEFAULT
 
 
 --
--- TOC entry 3350 (class 2604 OID 33530)
+-- TOC entry 3363 (class 2604 OID 33530)
 -- Name: categorieutilisateur categorieutilisateurid; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -488,7 +544,7 @@ ALTER TABLE ONLY public.categorieutilisateur ALTER COLUMN categorieutilisateurid
 
 
 --
--- TOC entry 3362 (class 2604 OID 33712)
+-- TOC entry 3377 (class 2604 OID 33712)
 -- Name: categorieutilisateurorg categorieutilisateurorgid; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -496,7 +552,7 @@ ALTER TABLE ONLY public.categorieutilisateurorg ALTER COLUMN categorieutilisateu
 
 
 --
--- TOC entry 3346 (class 2604 OID 16425)
+-- TOC entry 3359 (class 2604 OID 16425)
 -- Name: incident id_incident; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -504,7 +560,7 @@ ALTER TABLE ONLY public.incident ALTER COLUMN id_incident SET DEFAULT nextval('p
 
 
 --
--- TOC entry 3354 (class 2604 OID 33553)
+-- TOC entry 3368 (class 2604 OID 33553)
 -- Name: push_subscriptions id; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -512,7 +568,7 @@ ALTER TABLE ONLY public.push_subscriptions ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
--- TOC entry 3356 (class 2604 OID 33657)
+-- TOC entry 3370 (class 2604 OID 33657)
 -- Name: type_organisation typeorganisationid; Type: DEFAULT; Schema: public; Owner: asuna
 --
 
@@ -520,7 +576,7 @@ ALTER TABLE ONLY public.type_organisation ALTER COLUMN typeorganisationid SET DE
 
 
 --
--- TOC entry 3343 (class 2604 OID 16409)
+-- TOC entry 3355 (class 2604 OID 16409)
 -- Name: utilisateurs userid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -528,22 +584,17 @@ ALTER TABLE ONLY public.utilisateurs ALTER COLUMN userid SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3560 (class 0 OID 16457)
+-- TOC entry 3596 (class 0 OID 16457)
 -- Dependencies: 224
 -- Data for Name: article; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
 COPY public.article (articleid, titre, date_create, contenu, piecesjointes, typepiece, userid) FROM stdin;
-1	Test article 	2026-04-13	<p><strong>Goma, RDC</strong> – Dans une ère de surveillance accrue, la dénonciation anonyme devient le seul rempart pour les populations vulnérables contre l'impunité.</p><h2>Le cryptage de bout en bout</h2><p>Toutes les informations transmises via notre plateforme sont chiffrées. Même l'équipe de <strong>Lonford Devs</strong> ne peut accéder au contenu sans votre clé privée.</p><blockquote><p>"La justice commence par le droit de parler sans crainte." - Équipe TAASISI</p></blockquote><ul><li><p>Anonymat garanti par IP Masking.</p></li><li><p>Preuves stockées sur Blockchain légère.</p></li><li><p>Signalement possible sans internet (Mode Offline).</p></li></ul><p></p>	9965a158fa7ec9e6f46124884e719be6	image/jpeg	1
-3	fast	2026-04-13		ec5c0fe866649aa43fc99c8d543a608f	image/jpeg	1
-2	Autre article	2026-04-13	<p><strong>Goma, RDC</strong> – Dans une ère de surveillance accrue, la dénonciation anonyme devient le seul rempart pour les populations vulnérables contre l'impunité.</p><h2>Le cryptage de bout en bout</h2><p>Toutes les informations transmises via notre plateforme sont chiffrées. Même l'équipe de <strong>Lonford Devs</strong> ne peut accéder au contenu sans votre clé privée.</p><blockquote><p>"La justice commence par le droit de parler sans crainte." - Équipe TAASISI</p></blockquote><ul><li><p>Anonymat garanti par IP Masking.</p></li><li><p>Preuves stockées sur Blockchain légère.</p></li><li><p>Signalement possible sans internet (Mode Offline).</p></li></ul><p></p>	6cfbefab27d9d2f78011335f895fdfa8	image/png	2
-4	Application de gestion de plainte	2026-04-14	<p>À l’ère du numérique, les organisations – qu’elles soient publiques ou privées – doivent répondre de manière rapide, transparente et efficace aux préoccupations de leurs usagers. Dans ce contexte, les applications de gestion de plainte s’imposent comme des outils indispensables pour structurer, suivre et résoudre les réclamations de manière professionnelle.</p><h4>Qu’est-ce qu’une application de gestion de plainte ?</h4><p>Une application de gestion de plainte est une plateforme numérique conçue pour centraliser les réclamations des clients, citoyens ou usagers. Elle permet de soumettre une plainte, de la suivre en temps réel, et d’assurer son traitement jusqu’à sa résolution. Ces applications peuvent être accessibles via mobile, web ou intégrées aux systèmes internes d’une organisation.</p><h4>Fonctionnalités principales</h4><p>Une bonne application de gestion de plainte offre généralement les fonctionnalités suivantes :</p><ul><li><p><strong>Soumission simplifiée des plaintes</strong> : formulaires intuitifs permettant de décrire le problème, joindre des documents ou des images.</p></li><li><p><strong>Suivi en temps réel</strong> : l’utilisateur peut consulter l’état d’avancement de sa plainte.</p></li><li><p><strong>Attribution automatique</strong> : les plaintes sont dirigées vers les services compétents.</p></li><li><p><strong>Historique et traçabilité</strong> : toutes les interactions sont enregistrées pour garantir la transparence.</p></li><li><p><strong>Notifications</strong> : alertes envoyées aux utilisateurs et aux gestionnaires pour les tenir informés.</p></li><li><p><strong>Tableaux de bord analytiques</strong> : outils de reporting pour identifier les tendances et améliorer les services.</p></li></ul><h4>Avantages pour les organisations</h4><p>L’adoption d’une telle application présente de nombreux bénéfices :</p><ul><li><p><strong>Amélioration de la satisfaction des usagers</strong> grâce à des réponses rapides et structurées.</p></li><li><p><strong>Gain de temps et d’efficacité</strong> dans le traitement des plaintes.</p></li><li><p><strong>Réduction des erreurs humaines</strong> grâce à l’automatisation.</p></li><li><p><strong>Meilleure prise de décision</strong> grâce aux données collectées et analysées.</p></li><li><p><strong>Renforcement de la transparence et de la confiance</strong> entre l’organisation et ses usagers.</p></li></ul><h4>Cas d’utilisation</h4><p>Les applications de gestion de plainte sont utilisées dans divers secteurs :</p><ul><li><p><strong>Services publics</strong> : gestion des plaintes des citoyens (routes, électricité, eau, etc.).</p></li><li><p><strong>Entreprises privées</strong> : service client et support technique.</p></li><li><p><strong>Institutions financières</strong> : traitement des litiges clients.</p></li><li><p><strong>Établissements de santé</strong> : retour des patients sur les services reçus.</p></li></ul><h4>Enjeux et défis</h4><p>Malgré leurs avantages, ces applications doivent relever certains défis :</p><ul><li><p><strong>Accessibilité numérique</strong> : garantir que tous les usagers puissent utiliser l’application.</p></li><li><p><strong>Protection des données</strong> : sécuriser les informations sensibles.</p></li><li><p><strong>Adoption par les utilisateurs</strong> : encourager les citoyens ou clients à utiliser la plateforme.</p></li><li><p><strong>Formation du personnel</strong> : assurer une bonne prise en main de l’outil par les équipes.</p></li></ul><h4>Conclusion</h4><p>Les applications de gestion de plainte représentent un progrès majeur dans la gestion de la relation usager. En facilitant la communication, en améliorant la réactivité et en apportant une meilleure visibilité sur les problèmes rencontrés, elles contribuent à une gouvernance plus efficace et à une meilleure qualité de service. Dans un monde où la satisfaction des utilisateurs est devenue essentielle, investir dans ce type de solution n’est plus une option, mais une nécessité.</p>	1776179584523.jpg	image/jpeg	1
-5	gad	2026-04-18	<h1><strong>egtt</strong></h1><p><s>cvdvrvr</s></p>	7619984930653994577c6934e152a995	image/jpeg	1
 \.
 
 
 --
--- TOC entry 3570 (class 0 OID 33719)
+-- TOC entry 3606 (class 0 OID 33719)
 -- Dependencies: 234
 -- Data for Name: assignercategorieutilisateurorg; Type: TABLE DATA; Schema: public; Owner: asuna
 --
@@ -553,20 +604,70 @@ COPY public.assignercategorieutilisateurorg (assignercategorieutilisateurorgid, 
 
 
 --
--- TOC entry 3558 (class 0 OID 16440)
+-- TOC entry 3609 (class 0 OID 33782)
+-- Dependencies: 237
+-- Data for Name: assignerdomaine; Type: TABLE DATA; Schema: public; Owner: asuna
+--
+
+COPY public.assignerdomaine (assignerdomaineid, organisationid, categorie_id, status, userid) FROM stdin;
+036eabcd-738b-4d80-8782-d417bd6b2e6c	\N	1	actif	15
+d1b54f2e-b965-46fc-9ff9-f37c38e922a0	\N	1	actif	15
+66dab510-5c66-4cbc-87fc-65cb1bdcef67	\N	1	actif	15
+34f559cc-652d-463f-9f67-c572c1e8d227	\N	2	actif	15
+971b601b-75c9-4861-ad45-9dc7aeab3adc	\N	1	actif	15
+65c8c77c-7d03-462c-a89f-ce8a7f1c531c	\N	1	actif	15
+5f737bd4-9588-4d98-9c32-748299bb2935	\N	1	actif	15
+9bcbf654-5dae-4106-b3e7-f35f9b1797b8	\N	2	actif	15
+\.
+
+
+--
+-- TOC entry 3608 (class 0 OID 33768)
+-- Dependencies: 236
+-- Data for Name: assignerfonctionnalites; Type: TABLE DATA; Schema: public; Owner: asuna
+--
+
+COPY public.assignerfonctionnalites (fonctionnaliteid, categorieutilisateurid, compte, assignerfonctionnalitesid, status) FROM stdin;
+8f92487c-d69d-4184-be60-babcc503b3c4	7	main	35b8c36f-280e-4b45-8cfd-10d36287ab95	actif
+050f7912-a567-4fe4-8bd2-9ad3c20379e3	7	main	7112cec0-ccfa-4505-8d91-dfa759468ec0	actif
+cc33486d-dcad-4698-8471-31ec7f27c928	7	main	d4d7390f-4a52-43cd-99b1-d555adb53bae	actif
+39aea7c2-f60d-400e-8be9-694c29681262	8	main	3c662c84-cef6-444d-b179-c06f0b00fde4	actif
+050f7912-a567-4fe4-8bd2-9ad3c20379e3	8	main	5be86ade-8fda-4726-a395-fb89ccc2eda1	actif
+cc33486d-dcad-4698-8471-31ec7f27c928	8	main	43fcc03c-636d-45b8-89d3-282ee267c7f5	actif
+8f92487c-d69d-4184-be60-babcc503b3c4	8	main	7a340b59-a131-417c-8ad7-65b1aadda396	actif
+e2d629f8-ea79-4bc3-96d7-604e98725cd8	8	main	02559836-cae8-47d4-8991-c7cf387ff147	actif
+39aea7c2-f60d-400e-8be9-694c29681262	9	main	fee79cdc-235f-4af2-a96a-f593ba346921	actif
+e2d629f8-ea79-4bc3-96d7-604e98725cd8	9	main	5b5ffa28-64d4-4c33-a2fe-2999b95ec4fa	actif
+8f92487c-d69d-4184-be60-babcc503b3c4	9	main	6204bad5-e62b-44c6-bb26-dd300250b86a	actif
+5b689762-0e81-4311-91a1-e48389957242	9	main	453609cb-f396-47f2-8d7a-425dc4cd23aa	actif
+cc33486d-dcad-4698-8471-31ec7f27c928	9	main	6ba994d4-58c7-4e87-aa5e-749e67cc8225	actif
+23b6eafc-485e-42e9-ba0a-5c14ae574a8d	9	main	06d1fd75-991e-4bc6-9c64-d863b87cac5b	actif
+050f7912-a567-4fe4-8bd2-9ad3c20379e3	9	main	2f64e2c9-5563-4f1b-8e39-b3cf58801fc2	actif
+39aea7c2-f60d-400e-8be9-694c29681262	10	main	c59db550-4f49-4a47-bcc5-e1f77a93d2ba	actif
+8f92487c-d69d-4184-be60-babcc503b3c4	10	main	1656124a-3f64-41f7-a45c-7090f227c437	actif
+e2d629f8-ea79-4bc3-96d7-604e98725cd8	10	main	54c402ba-4fe3-4293-be91-cb9562a57080	actif
+5b689762-0e81-4311-91a1-e48389957242	10	main	c4ff1901-92e1-4c5c-aa34-e52394034180	actif
+65030167-b59d-4530-975b-d5b8c1428903	10	main	027d5c3d-61c6-4a05-aca1-dae9dc77674d	actif
+23b6eafc-485e-42e9-ba0a-5c14ae574a8d	10	main	a9b0d409-f923-46c7-9c3c-5438ed9ee82e	actif
+8fe38924-e0fc-4032-b341-4d8e6a50b838	10	main	5e823b08-c53c-4e7d-bcf6-8c9424f83463	actif
+050f7912-a567-4fe4-8bd2-9ad3c20379e3	10	main	198b1eb0-19c4-48fa-bbc9-825ab1c4625a	actif
+9514a938-9ce1-4717-ba95-a92c94f44abf	10	main	b9f2943d-be63-4499-95eb-5626db4d3ba1	actif
+cc33486d-dcad-4698-8471-31ec7f27c928	10	main	8478285b-29fb-4813-9ad9-bffcde59b97c	actif
+\.
+
+
+--
+-- TOC entry 3594 (class 0 OID 16440)
 -- Dependencies: 222
 -- Data for Name: attribuerdossier; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
 COPY public.attribuerdossier (attribuerid, date, status, userid, dossierid) FROM stdin;
-9	2026-08-27	en cours	6	10
-10	2026-08-30	cloturer	6	9
-11	2026-08-31	en cours	10	11
 \.
 
 
 --
--- TOC entry 3554 (class 0 OID 16415)
+-- TOC entry 3590 (class 0 OID 16415)
 -- Dependencies: 218
 -- Data for Name: categorie_incident; Type: TABLE DATA; Schema: public; Owner: asuna
 --
@@ -578,70 +679,85 @@ COPY public.categorie_incident (categorie_id, designation, etat, date, niveau) F
 
 
 --
--- TOC entry 3562 (class 0 OID 33527)
+-- TOC entry 3598 (class 0 OID 33527)
 -- Dependencies: 226
 -- Data for Name: categorieutilisateur; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
-COPY public.categorieutilisateur (categorieutilisateurid, designation, description, created_at, confirm, organisation) FROM stdin;
-1	Admin	Accès complet à la plateforme et à la gestion des utilisateurs	2026-08-25 10:35:26.960024+02	t	f
-3	professionnel	Utilisateur professionel avec accès aux services avancé	2026-08-25 10:35:26.960024+02	t	f
-2	utilisateur	Utilisateur standard avec accès aux services de base	2026-08-25 10:35:26.960024+02	f	f
-4	organisation	Accès complet au fonctionnalité professionnel	2026-09-07 06:45:02.659489+02	f	t
+COPY public.categorieutilisateur (categorieutilisateurid, designation, description, created_at, confirm, organisation, status) FROM stdin;
+8	Professionnel	professionnel	2026-09-17 20:49:32.512798+02	t	f	actif
+9	Organisation	organisation	2026-09-17 20:50:23.799112+02	t	f	actif
+10	Administrateur	admin	2026-09-17 20:51:10.752653+02	t	f	actif
+7	Utilisateur	utilisateur normal	2026-09-17 20:48:32.165122+02	f	f	actif
 \.
 
 
 --
--- TOC entry 3569 (class 0 OID 33709)
+-- TOC entry 3605 (class 0 OID 33709)
 -- Dependencies: 233
 -- Data for Name: categorieutilisateurorg; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
 COPY public.categorieutilisateurorg (categorieutilisateurorgid, libelle, description, created_at, status, organisationid) FROM stdin;
-1	Juriste	utilisateurs juristes 	2026-09-11 14:27:00.424525+02	actif	8befdf34-dd72-47f4-a620-cee0fc377afc
 \.
 
 
 --
--- TOC entry 3556 (class 0 OID 16422)
+-- TOC entry 3607 (class 0 OID 33747)
+-- Dependencies: 235
+-- Data for Name: fonctionnalites; Type: TABLE DATA; Schema: public; Owner: asuna
+--
+
+COPY public.fonctionnalites (fonctionnaliteid, designation, description, icone, route, parentid, ordre_affichage, status, created_at, updated_at) FROM stdin;
+39aea7c2-f60d-400e-8be9-694c29681262	Dashboard	description	dashboard	/dashboard	\N	0	t	2026-09-17 09:54:23.189805+02	2026-09-17 09:54:23.189805+02
+e2d629f8-ea79-4bc3-96d7-604e98725cd8	Dossiers	gestion des dossiers	folder-open	/dossiers	\N	0	t	2026-09-17 20:33:26.779412+02	2026-09-17 20:33:26.779412+02
+8f92487c-d69d-4184-be60-babcc503b3c4	Mes signalements	signalements	exclamation-triangle	/mysignalement	\N	0	t	2026-09-17 20:34:52.654275+02	2026-09-17 20:34:52.654275+02
+65030167-b59d-4530-975b-d5b8c1428903	Orgaisations	/organisations	institution	organisations	\N	0	t	2026-09-17 20:36:12.526667+02	2026-09-17 20:36:12.526667+02
+5b689762-0e81-4311-91a1-e48389957242	Gestion d'utilisateurs	/organisations	user-tie	/utilisateursorg	\N	0	t	2026-09-17 20:37:30.50285+02	2026-09-17 20:37:30.50285+02
+23b6eafc-485e-42e9-ba0a-5c14ae574a8d	Categories d'utilisateurs	categorie utilisateurs organisation	user-tag	/categorieutilisateurorg	\N	0	t	2026-09-17 20:38:24.991807+02	2026-09-17 20:38:24.991807+02
+9514a938-9ce1-4717-ba95-a92c94f44abf	Categories d'utilisateurs (main)	categorie utilisateurs 	user-tag	/categorieutilisateur	\N	0	t	2026-09-17 20:38:53.749687+02	2026-09-17 20:38:53.749687+02
+8fe38924-e0fc-4032-b341-4d8e6a50b838	Utilisateurs	confirmtions utilisateurs, 	users	/utilisateurs	\N	0	t	2026-09-17 20:39:29.147126+02	2026-09-17 20:39:29.147126+02
+050f7912-a567-4fe4-8bd2-9ad3c20379e3	Articles	articles	newspaper	/articles	\N	0	t	2026-09-17 20:40:08.96236+02	2026-09-17 20:40:08.96236+02
+cc33486d-dcad-4698-8471-31ec7f27c928	Parametres	parametres	cog	/parametres	\N	0	t	2026-09-17 20:41:07.445655+02	2026-09-17 20:41:07.445655+02
+\.
+
+
+--
+-- TOC entry 3592 (class 0 OID 16422)
 -- Dependencies: 220
 -- Data for Name: incident; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
 COPY public.incident (lieu, id_incident, description, date_incident, status, anonyme, categorieid, annexe, typeannexe, date_create, userid) FROM stdin;
-Beni	9	Description 	2026-08-26	actif	\N	1	\N	\N	2026-08-26	\N
-Beni, Kanzuli	10	Beni,f rrkmv rvrvkvtjv tnvtvnjvdc 	2026-08-25	actif	\N	2	\N	\N	2026-08-26	6
-Beni	11	description	2026-08-29	actif	\N	2	\N	\N	2026-08-30	6
-Residentiel 	12	Faudre,..rmvrvrkv vj vjr vje fef;ervmef rtvnkddk efjrf	2026-08-31	actif	\N	2	\N	\N	2026-08-31	10
+Beni	13	Bebebe	2026-09-18	actif	\N	1	\N	\N	2026-09-18	16
+Beni	14	Gedfff	2026-09-18	actif	\N	1	\N	\N	2026-09-18	16
+Beni	15	Gedfff	2026-09-18	actif	\N	1	\N	\N	2026-09-18	16
 \.
 
 
 --
--- TOC entry 3567 (class 0 OID 33665)
+-- TOC entry 3603 (class 0 OID 33665)
 -- Dependencies: 231
 -- Data for Name: organisation; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
-COPY public.organisation (organisationid, designation, sigle, typeorganisationid, pays, province, ville, adresse_org, phone_org, email_org, site_web, reseaux_sociaux, logo_url, userid, created_at, updated_at, status) FROM stdin;
-8befdf34-dd72-47f4-a620-cee0fc377afc	LONFORD	LFD	1	CD	Beni	Beni	C. MULEKERA	\N	gadmalik423@gmail.com	https://lonford.org	facebook.com	/logo/ee77c95c29b5563c91a3f219abdc5cbc	12	2026-09-09 22:04:42.278902+02	2026-09-09 22:04:42.278902+02	actif
+COPY public.organisation (organisationid, designation, sigle, typeorganisationid, pays, province, ville, adresse_org, phone_org, email_org, site_web, reseaux_sociaux, logo_url, userid, created_at, updated_at, status, config) FROM stdin;
 \.
 
 
 --
--- TOC entry 3564 (class 0 OID 33550)
+-- TOC entry 3600 (class 0 OID 33550)
 -- Dependencies: 228
 -- Data for Name: push_subscriptions; Type: TABLE DATA; Schema: public; Owner: asuna
 --
 
 COPY public.push_subscriptions (id, userid, subscription, created_at) FROM stdin;
-35	6	{"keys": {"auth": "wxbYgQmmzS6E-uBAqPqnrQ", "p256dh": "BB0p08utwNQfbZuzx1f95tHVReuyxUpGczaArNNsi-tq0nN_LoPb5mWyAifz4CUlbZjkNudYg_ClIQMWP4oE1ws"}, "endpoint": "https://fcm.googleapis.com/fcm/send/eGeSotQoimw:APA91bGVATPjbnWkftwEb6tr_OlW60o5ofxp9GhNjrHzbgDSv3gDXze97zGEuZXNeYPqxj9PXSv66WGdDMoPdZFGGj1PGJWB3PThvLGU8djLkLp9_xt5F9C6v5_JZt2qzivAbeW1CntJ", "expirationTime": null}	2026-08-30 17:46:35.537188
-36	6	{"keys": {"auth": "Mo9u36iLujG-eh5gyc-sgQ", "p256dh": "BI7HRNyH7m7TBxmyd-1PxjzfaYqMp4mPGGAkKbvxt9hV5ol7eV8W1GfE9wk3iWkIfZUURR8hvzbmFAo85albsYg"}, "endpoint": "https://fcm.googleapis.com/fcm/send/dxUh_OYF31Y:APA91bHzfh_M7XyXJtDg5IFlDisPfHeunFDRlnCl_Z7BPCM6z7r0xt9oRXVvWEJUFU3L0O3tQ156_c1VPF9tCWFchQ2xobY66W0MI_Pi0wl-o-gW5_JNscwuaRbnvi6i4rzb1G_FSjap", "expirationTime": null}	2026-08-30 17:46:35.567131
-2	13	{"keys": {"auth": "Jn8Yj4BOTFRm8iGHJvQ65g", "p256dh": "BNoYwQN42-XDbSN-3_jm54-hJrG8m86gnUhQZu5btoD-O1HVFFGnue0clf1Ri6syd0BwarUtfLtA0Slk4P3H23M"}, "endpoint": "https://fcm.googleapis.com/fcm/send/c_W3Un6048c:APA91bEwJALdIIet8DSasQWo2oNarvsbmX8BkIZj2aireU2jnd2cqUdrhQrbc4qdNDRQ1BNooeRSGn6Uk12lVtklf2b9e7V-bYnUbGfimOTsFr5XT-Idt9IhjRMCVqtGHlDViFY3to3B", "expirationTime": null}	2026-08-27 14:44:16.707429
+228	15	{"keys": {"auth": "Jn8Yj4BOTFRm8iGHJvQ65g", "p256dh": "BNoYwQN42-XDbSN-3_jm54-hJrG8m86gnUhQZu5btoD-O1HVFFGnue0clf1Ri6syd0BwarUtfLtA0Slk4P3H23M"}, "endpoint": "https://fcm.googleapis.com/fcm/send/c_W3Un6048c:APA91bEwJALdIIet8DSasQWo2oNarvsbmX8BkIZj2aireU2jnd2cqUdrhQrbc4qdNDRQ1BNooeRSGn6Uk12lVtklf2b9e7V-bYnUbGfimOTsFr5XT-Idt9IhjRMCVqtGHlDViFY3to3B", "expirationTime": null}	2026-09-18 15:01:07.45581
 \.
 
 
 --
--- TOC entry 3566 (class 0 OID 33654)
+-- TOC entry 3602 (class 0 OID 33654)
 -- Dependencies: 230
 -- Data for Name: type_organisation; Type: TABLE DATA; Schema: public; Owner: asuna
 --
@@ -655,27 +771,19 @@ COPY public.type_organisation (typeorganisationid, libelle, description, created
 
 
 --
--- TOC entry 3552 (class 0 OID 16406)
+-- TOC entry 3588 (class 0 OID 16406)
 -- Dependencies: 216
 -- Data for Name: utilisateurs; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.utilisateurs (userid, nom, email, phone, mdp, code, type, etat, date_create, username, adresse, prenom, categorieutilisateurid) FROM stdin;
-2	Malik Will	gad@gmail.com	243826711828	423#malik	\N	main	actif	2026-04-13	will                                              	Beni	\N	1
-6	Malik	gadmalik43@gmail.com	2438671182	$2b$10$TxUHrGAyzZ/pmHD1I4.wouAljiqwC/f0vUjBwPmttFSYTjlBWZpAa	\N	main	actif	2026-08-25	gadmalik423                                       	Beni	Gad	2
-8	malikidogo	gracechiru1@gmail.com	243990886	\N	304896	main	en attente	2026-08-31	gmalikidogo                                       	beni	gad	1
-9	Grace	gracechiru41@gmail.com	24399086	\N	264326	main	en attente	2026-08-31	chigrace                                          	Beni	Mwinja	1
-10	Grace	chirumwinja@gmail.com	24399999999	$2b$10$cC9xlqawt46Y4UtrvY6qeOTGcakG4cLXBsrZXcIvEli/dZXj9BCcO	\N	main	actif	2026-08-31	grace                                             	Beni	Mwinja	1
-12	Malik	gadmalik423@gmail.com	0826711828	$2b$10$npMK9vowirkmVr1Mx/jJj.aL78V3LAHTP3xh9OLYyOR5wKeZdGl0C	\N	main	actif	2026-09-08	gmlk                                              	Beni	Gad	4
-1	Gad Malik	gadmalik42@gmail.com	243993886474	423#malik	\N	main	actif	2026-03-12	mm                                                	Beni, tamende	\N	2
-11	Malik	gadmalik425@gmail.com	243993886472	\N	349139	main	actif	2026-09-08	gmm                                               	Beni	Gad	4
-7	Malik	gmalikidogo@gmail.com	243993886475	\N	663136	second	en attente	2026-08-30	gmalike                                           	Beni	Gad	1
-13	Elie	gadmalikidogo@gmail.com	243993886477	$2b$10$nqbClTlxQPF4SZ1gi7o33ujZ9XGP/6oi41hqPesx1/L16yOHHxMpG	\N	second	en attente	2026-09-11	gadmalik                                          	Beni	MALIK	1
+COPY public.utilisateurs (userid, nom, email, phone, mdp, code, type, etat, date_create, username, adresse, prenom, categorieutilisateurid, config) FROM stdin;
+15	Malik	gadmalik423@gmail.com	0993886474	$2b$10$dEMAbNEc3H1DjRR0mOpYO.1lHJvq1JpB.IeaSwvrEE5sQ0rPqIFKy	\N	main	actif	2026-09-18	gadmalik                                          	C. MULEKERA	Gad	8	t
+16	Malik	gadmalikidogo@gmail.com	243826711828	$2b$10$.aa6nDlrO6JtGb8F6mXkm.cDuWSDwDmv7T0YCZe5h3A0NlzfpWNZW	\N	main	actif	2026-09-18	gmalik                                            	423	Gad	7	f
 \.
 
 
 --
--- TOC entry 3585 (class 0 OID 0)
+-- TOC entry 3624 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: article_articleid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
@@ -684,7 +792,7 @@ SELECT pg_catalog.setval('public.article_articleid_seq', 5, true);
 
 
 --
--- TOC entry 3586 (class 0 OID 0)
+-- TOC entry 3625 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: attribuerdossier_attribuerid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
@@ -693,25 +801,25 @@ SELECT pg_catalog.setval('public.attribuerdossier_attribuerid_seq', 11, true);
 
 
 --
--- TOC entry 3587 (class 0 OID 0)
+-- TOC entry 3626 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: categorieutilisateur_categorieutilisateurid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
 
-SELECT pg_catalog.setval('public.categorieutilisateur_categorieutilisateurid_seq', 4, true);
+SELECT pg_catalog.setval('public.categorieutilisateur_categorieutilisateurid_seq', 10, true);
 
 
 --
--- TOC entry 3588 (class 0 OID 0)
+-- TOC entry 3627 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: categorieutilisateurorg_categorieutilisateurorgid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
 
-SELECT pg_catalog.setval('public.categorieutilisateurorg_categorieutilisateurorgid_seq', 1, true);
+SELECT pg_catalog.setval('public.categorieutilisateurorg_categorieutilisateurorgid_seq', 10, true);
 
 
 --
--- TOC entry 3589 (class 0 OID 0)
+-- TOC entry 3628 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: cateogie_incident_id_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
@@ -720,25 +828,25 @@ SELECT pg_catalog.setval('public.cateogie_incident_id_seq', 2, true);
 
 
 --
--- TOC entry 3590 (class 0 OID 0)
+-- TOC entry 3629 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: incident_id_incident_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
 
-SELECT pg_catalog.setval('public.incident_id_incident_seq', 12, true);
+SELECT pg_catalog.setval('public.incident_id_incident_seq', 15, true);
 
 
 --
--- TOC entry 3591 (class 0 OID 0)
+-- TOC entry 3630 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: push_subscriptions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
 
-SELECT pg_catalog.setval('public.push_subscriptions_id_seq', 103, true);
+SELECT pg_catalog.setval('public.push_subscriptions_id_seq', 241, true);
 
 
 --
--- TOC entry 3592 (class 0 OID 0)
+-- TOC entry 3631 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: type_organisation_typeorganisationid_seq; Type: SEQUENCE SET; Schema: public; Owner: asuna
 --
@@ -747,16 +855,16 @@ SELECT pg_catalog.setval('public.type_organisation_typeorganisationid_seq', 6, t
 
 
 --
--- TOC entry 3593 (class 0 OID 0)
+-- TOC entry 3632 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: utilisateurs_userid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.utilisateurs_userid_seq', 13, true);
+SELECT pg_catalog.setval('public.utilisateurs_userid_seq', 16, true);
 
 
 --
--- TOC entry 3396 (class 2606 OID 33728)
+-- TOC entry 3421 (class 2606 OID 33728)
 -- Name: assignercategorieutilisateurorg assignercategorieutilisateurorg_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -765,7 +873,25 @@ ALTER TABLE ONLY public.assignercategorieutilisateurorg
 
 
 --
--- TOC entry 3373 (class 2606 OID 16430)
+-- TOC entry 3428 (class 2606 OID 33787)
+-- Name: assignerdomaine assignerdomaine_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.assignerdomaine
+    ADD CONSTRAINT assignerdomaine_pkey PRIMARY KEY (assignerdomaineid);
+
+
+--
+-- TOC entry 3426 (class 2606 OID 33773)
+-- Name: assignerfonctionnalites assignerfonctionnalites_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.assignerfonctionnalites
+    ADD CONSTRAINT assignerfonctionnalites_pkey PRIMARY KEY (assignerfonctionnalitesid);
+
+
+--
+-- TOC entry 3398 (class 2606 OID 16430)
 -- Name: categorie_incident categorie_id_pk; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -774,7 +900,7 @@ ALTER TABLE ONLY public.categorie_incident
 
 
 --
--- TOC entry 3378 (class 2606 OID 33537)
+-- TOC entry 3403 (class 2606 OID 33537)
 -- Name: categorieutilisateur categorieutilisateur_designation_key; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -783,7 +909,7 @@ ALTER TABLE ONLY public.categorieutilisateur
 
 
 --
--- TOC entry 3380 (class 2606 OID 33535)
+-- TOC entry 3405 (class 2606 OID 33535)
 -- Name: categorieutilisateur categorieutilisateur_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -792,7 +918,7 @@ ALTER TABLE ONLY public.categorieutilisateur
 
 
 --
--- TOC entry 3394 (class 2606 OID 33718)
+-- TOC entry 3419 (class 2606 OID 33718)
 -- Name: categorieutilisateurorg categorieutilisateurorg_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -801,7 +927,16 @@ ALTER TABLE ONLY public.categorieutilisateurorg
 
 
 --
--- TOC entry 3376 (class 2606 OID 16437)
+-- TOC entry 3423 (class 2606 OID 33758)
+-- Name: fonctionnalites fonctionnalite_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.fonctionnalites
+    ADD CONSTRAINT fonctionnalite_pkey PRIMARY KEY (fonctionnaliteid);
+
+
+--
+-- TOC entry 3401 (class 2606 OID 16437)
 -- Name: incident incident_pk; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -810,7 +945,7 @@ ALTER TABLE ONLY public.incident
 
 
 --
--- TOC entry 3392 (class 2606 OID 33674)
+-- TOC entry 3417 (class 2606 OID 33674)
 -- Name: organisation organisation_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -819,7 +954,7 @@ ALTER TABLE ONLY public.organisation
 
 
 --
--- TOC entry 3382 (class 2606 OID 33558)
+-- TOC entry 3407 (class 2606 OID 33558)
 -- Name: push_subscriptions push_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -828,7 +963,7 @@ ALTER TABLE ONLY public.push_subscriptions
 
 
 --
--- TOC entry 3384 (class 2606 OID 33560)
+-- TOC entry 3409 (class 2606 OID 33560)
 -- Name: push_subscriptions push_subscriptions_subscription_key; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -837,7 +972,7 @@ ALTER TABLE ONLY public.push_subscriptions
 
 
 --
--- TOC entry 3386 (class 2606 OID 33664)
+-- TOC entry 3411 (class 2606 OID 33664)
 -- Name: type_organisation type_organisation_libelle_key; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -846,7 +981,7 @@ ALTER TABLE ONLY public.type_organisation
 
 
 --
--- TOC entry 3388 (class 2606 OID 33662)
+-- TOC entry 3413 (class 2606 OID 33662)
 -- Name: type_organisation type_organisation_pkey; Type: CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -855,7 +990,7 @@ ALTER TABLE ONLY public.type_organisation
 
 
 --
--- TOC entry 3371 (class 2606 OID 16413)
+-- TOC entry 3396 (class 2606 OID 16413)
 -- Name: utilisateurs utilisateurs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -864,7 +999,7 @@ ALTER TABLE ONLY public.utilisateurs
 
 
 --
--- TOC entry 3374 (class 1259 OID 16438)
+-- TOC entry 3399 (class 1259 OID 16438)
 -- Name: categorie_incident_id_idx; Type: INDEX; Schema: public; Owner: asuna
 --
 
@@ -872,7 +1007,15 @@ CREATE INDEX categorie_incident_id_idx ON public.categorie_incident USING btree 
 
 
 --
--- TOC entry 3389 (class 1259 OID 33686)
+-- TOC entry 3424 (class 1259 OID 33764)
+-- Name: idx_fonctionnalite_parent; Type: INDEX; Schema: public; Owner: asuna
+--
+
+CREATE INDEX idx_fonctionnalite_parent ON public.fonctionnalites USING btree (parentid);
+
+
+--
+-- TOC entry 3414 (class 1259 OID 33686)
 -- Name: idx_organisation_type_id; Type: INDEX; Schema: public; Owner: asuna
 --
 
@@ -880,7 +1023,7 @@ CREATE INDEX idx_organisation_type_id ON public.organisation USING btree (typeor
 
 
 --
--- TOC entry 3390 (class 1259 OID 33685)
+-- TOC entry 3415 (class 1259 OID 33685)
 -- Name: idx_organisation_userid; Type: INDEX; Schema: public; Owner: asuna
 --
 
@@ -888,7 +1031,7 @@ CREATE INDEX idx_organisation_userid ON public.organisation USING btree (userid)
 
 
 --
--- TOC entry 3402 (class 2606 OID 16463)
+-- TOC entry 3434 (class 2606 OID 16463)
 -- Name: article article_utilisateurs_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -897,7 +1040,7 @@ ALTER TABLE ONLY public.article
 
 
 --
--- TOC entry 3406 (class 2606 OID 33734)
+-- TOC entry 3438 (class 2606 OID 33734)
 -- Name: assignercategorieutilisateurorg assignercategorieutilisateurorg_organisation_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -906,7 +1049,7 @@ ALTER TABLE ONLY public.assignercategorieutilisateurorg
 
 
 --
--- TOC entry 3407 (class 2606 OID 33739)
+-- TOC entry 3439 (class 2606 OID 33739)
 -- Name: assignercategorieutilisateurorg assignercategorieutilisateurorg_utilisateurs_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -915,7 +1058,7 @@ ALTER TABLE ONLY public.assignercategorieutilisateurorg
 
 
 --
--- TOC entry 3400 (class 2606 OID 16451)
+-- TOC entry 3432 (class 2606 OID 16451)
 -- Name: attribuerdossier attribuerdossier_incident_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -924,7 +1067,7 @@ ALTER TABLE ONLY public.attribuerdossier
 
 
 --
--- TOC entry 3401 (class 2606 OID 16446)
+-- TOC entry 3433 (class 2606 OID 16446)
 -- Name: attribuerdossier attribuerdossier_utilisateurs_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -933,7 +1076,16 @@ ALTER TABLE ONLY public.attribuerdossier
 
 
 --
--- TOC entry 3405 (class 2606 OID 33729)
+-- TOC entry 3442 (class 2606 OID 33788)
+-- Name: assignerdomaine categori_id; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.assignerdomaine
+    ADD CONSTRAINT categori_id FOREIGN KEY (categorie_id) REFERENCES public.categorie_incident(categorie_id);
+
+
+--
+-- TOC entry 3437 (class 2606 OID 33729)
 -- Name: categorieutilisateurorg categorieutilisateurorg_organisation_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -942,7 +1094,16 @@ ALTER TABLE ONLY public.categorieutilisateurorg
 
 
 --
--- TOC entry 3403 (class 2606 OID 33675)
+-- TOC entry 3440 (class 2606 OID 33759)
+-- Name: fonctionnalites fk_fonctionnalite_parent; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.fonctionnalites
+    ADD CONSTRAINT fk_fonctionnalite_parent FOREIGN KEY (parentid) REFERENCES public.fonctionnalites(fonctionnaliteid) ON DELETE SET NULL;
+
+
+--
+-- TOC entry 3435 (class 2606 OID 33675)
 -- Name: organisation fk_organisation_type; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -951,7 +1112,7 @@ ALTER TABLE ONLY public.organisation
 
 
 --
--- TOC entry 3404 (class 2606 OID 33680)
+-- TOC entry 3436 (class 2606 OID 33680)
 -- Name: organisation fk_organisation_user; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -960,7 +1121,16 @@ ALTER TABLE ONLY public.organisation
 
 
 --
--- TOC entry 3398 (class 2606 OID 16431)
+-- TOC entry 3441 (class 2606 OID 33774)
+-- Name: assignerfonctionnalites fonctionnalite_assignfonction; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.assignerfonctionnalites
+    ADD CONSTRAINT fonctionnalite_assignfonction FOREIGN KEY (fonctionnaliteid) REFERENCES public.fonctionnalites(fonctionnaliteid);
+
+
+--
+-- TOC entry 3430 (class 2606 OID 16431)
 -- Name: incident incident_categorie_incident_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -969,7 +1139,7 @@ ALTER TABLE ONLY public.incident
 
 
 --
--- TOC entry 3399 (class 2606 OID 33544)
+-- TOC entry 3431 (class 2606 OID 33544)
 -- Name: incident incident_utilisateurs_fk; Type: FK CONSTRAINT; Schema: public; Owner: asuna
 --
 
@@ -978,7 +1148,16 @@ ALTER TABLE ONLY public.incident
 
 
 --
--- TOC entry 3397 (class 2606 OID 33539)
+-- TOC entry 3443 (class 2606 OID 33793)
+-- Name: assignerdomaine orgnisationid; Type: FK CONSTRAINT; Schema: public; Owner: asuna
+--
+
+ALTER TABLE ONLY public.assignerdomaine
+    ADD CONSTRAINT orgnisationid FOREIGN KEY (organisationid) REFERENCES public.organisation(organisationid);
+
+
+--
+-- TOC entry 3429 (class 2606 OID 33539)
 -- Name: utilisateurs utilisateurs_categorieutilisateur_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -986,11 +1165,11 @@ ALTER TABLE ONLY public.utilisateurs
     ADD CONSTRAINT utilisateurs_categorieutilisateur_fk FOREIGN KEY (categorieutilisateurid) REFERENCES public.categorieutilisateur(categorieutilisateurid);
 
 
--- Completed on 2026-09-11 21:00:00 CAT
+-- Completed on 2026-09-18 18:09:33 CAT
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DtwB2DusZYtyTpMIU8U7HiFV4Fx4EILtbIGmfh2vTZUTJdjDqzW4Fzguzgu2zZx
+\unrestrict 3P8Byf6RUhwpnyLTViaPsci6C1Ab5P6N3hnVTdW5oYQBVqlAZKKe33Elej531hw
 

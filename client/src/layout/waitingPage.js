@@ -1,10 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header, Modal } from "../components/Essential"
+import { useNavigate } from "react-router-dom";
 
 export function WaitingPage() {
+    const link = process.env.REACT_APP_LINK;
+    const navigate = useNavigate();
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
+
+    const verifEtatUtilisateur = async () => {
+        try {
+            const response = await fetch(link+`/user/`+user.userid, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            const data = await response.json();
+            if (data.success) {
+                console.log(data.data)
+                if(data.data.etat === "actif"){
+                    localStorage.setItem("userinfo", JSON.stringify(data.data));
+                    navigate("/home");
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return (
         <>
-            <Header title="Tableau de Bord" />
+            <Header title="Accueil" />
             <main class="pending-container">
 
                 <div class="pending-card">
@@ -46,7 +71,7 @@ export function WaitingPage() {
                     </div>
 
                     <div class="pending-actions">
-                        <button class="btn-primary-action" id="checkStatusBtn">
+                        <button class="btn-primary-action" id="checkStatusBtn" onClick={verifEtatUtilisateur}>
                             <i class="fa-solid fa-rotate-right" id="refreshIcon"></i>
                             Vérifier le statut
                         </button>
@@ -67,12 +92,40 @@ export function WaitingPage() {
 }
 
 export function WaitingOrgPage() {
+    const link = process.env.REACT_APP_LINK;
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
+    const navigate = useNavigate();
     const [visibleModal, setVisibleModal] = useState(false);
+    const [domaineintervention, setDomaineintervention] = useState([]);
+    const [visibleLoader, setVisibleLoader] = useState(false);
+    
+    const loadDomaines = async () => {
+        setVisibleLoader(true);
+        try {
+            await fetch(`${link}/get_categorie`, {
+                method: "get",
+            }).then((reponse) => reponse.json()).then((data) => {
+                setDomaineintervention(data?.data);
+                setVisibleLoader(false);
+            }).catch((error) => {
+                console.log(error);
+                setVisibleLoader(false);
+            });
+        } catch (error) {
+            console.log(error);
+            setVisibleLoader(false);
+
+        }
+    }
+
+    useEffect(() => {
+        loadDomaines();
+    }, []);
     
     return (
         <div>
             <Header title="Tableau de Bord" />
-            <Modal visible={visibleModal} setVisible={setVisibleModal} title={"Configuration de l'ordanisation"} hideModal={() => setVisibleModal(false)} onSubmit={() => {}} data={{form:"formOrganisation"}} />
+            <Modal visible={visibleModal} setVisible={setVisibleModal} title={"Configuration de l'ordanisation"} hideModal={() => setVisibleModal(false)} onSubmit={() => {}} data={{form:"formOrganisation", domaineintervention}} />
             <main class="no-org-container">
                 <div class="no-org-card">
                     <div class="setup-badge">

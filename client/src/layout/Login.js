@@ -33,7 +33,7 @@ export function Login() {
             }).then((reponse) => reponse.json()).then(async(data) => {
                 console.log(data);
                 if(data.success){
-                    if(data.data.organisation){
+                    if(data.data?.organisation){
                         if(data.data.organisationid){
                             if(data.data.ogstatus =="en_attente"){
                                 await localStorage.setItem("userinfo", JSON.stringify(data.data));
@@ -53,8 +53,16 @@ export function Login() {
                             navigate("/organisation");
                         }
                     }else{
-                        await localStorage.setItem("userinfo", JSON.stringify(data.data));
-                        navigate("/home");
+                        if(data.status == "en_attente"){
+                            await localStorage.setItem("userinfo", JSON.stringify(data.data));
+                            navigate("/welcome");
+                        }else if(data.status == "refuse"){
+                            await localStorage.setItem("userinfo", JSON.stringify(data.data));
+                            navigate("/welcome");
+                        }else if(data.status == "success"){
+                            await localStorage.setItem("userinfo", JSON.stringify(data.data));
+                            navigate("/home");
+                        }
                     }
                 }else{
                     setError(data.message);

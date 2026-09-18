@@ -38,7 +38,7 @@ export function Signalement() {
         });
     },[])
     return <>
-        <Header title={"Dossiers"} searchFunction={(text) => searchDossier(text)} />
+        <Header title={"Mes signalements"} searchFunction={(text) => searchDossier(text)} />
         {visibleLoader && <Loader />}
         <div className="main-container">
             <Modal

@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 import { useNavigate } from "react-router-dom";
-import { FormArticle, FormCategorieutilisateurOrg, FormEditProfile, FormOrganisation, FormSignaler, FormTypeIncident, FormUser } from "./Forms";
+import { FormArticle, FormassignerDomaine, FormCategorieUtilisateur, FormCategorieutilisateurOrg, FormEditProfile, FormFonctionnalite, FormOrganisation, FormSignaler, FormTypeIncident, FormUser } from "./Forms";
 import { MenuItem } from "./MiniComp";
-export function SideBar() {
+export function SideBar({fonctionnalites, user}) {
     const [activeMenu, setActiveMenu] = useState("dashboard");
+    const [fonctionnalitesMenu, setFonctionnalitesMenu] = useState(fonctionnalites || []);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        console.log(fonctionnalites);
+        if(fonctionnalites?.length > 0){
+            setFonctionnalitesMenu(fonctionnalites);
+        }
+    }, [fonctionnalites]);
     return (
         
     <nav class="sidebar">
@@ -14,15 +22,11 @@ export function SideBar() {
             <span>HAKI SYSTEM</span>
         </div>
         <ul class="menu">
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="chart-pie" label="Dashboard" page="dashboard" />
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="folder-open" label="Dossiers" page="dossiers" />
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="exclamation-triangle" label="Mes signalements" page="mysignalement" />
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="institution" label="Organisations" page="organisations" />
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="user-tie" label="Gestion d'utilisateurs" page="utilisateursorg" />
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="user-tag" label="Categories d'utilisateurs" page="categorieutilisateurorg" />
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="users" label="Utilisateurs" page="utilisateurs" />
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="newspaper" label="Articles (Éduc)" page="articles" />
-            <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon="gear" label="Paramètres" page="parametres" />
+            {
+                fonctionnalites?.map((fonctionnalite) => (
+                    <MenuItem activeMenu={activeMenu} setActiveMenu={setActiveMenu} navigate={navigate} icon={fonctionnalite.icone} label={fonctionnalite.designation} page={fonctionnalite.route} key={fonctionnalite.fonctionnaliteid} />
+                ))
+            }
         </ul>
     </nav>
 
@@ -61,9 +65,9 @@ export function Header({title, searchFunction}) {
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" placeholder="Rechercher un dossier..." onChange={(e) => searchFunction(e.target.value)} />
             </div>
-            <div class="user-profile" onClick={() => testpush()}>
+            <div class="user-profile">
                 <i class="fa-regular fa-bell fa-lg"></i>
-                <div class="user-img">{user.nom.charAt(0)}{user.prenom.charAt(0)}</div>
+                <div class="user-img" onClick={() => setUserMenu("active")}>{user.nom.charAt(0)}{user.prenom.charAt(0)}</div>
             </div>
             {/* menu cacher avec identité de l'utilisateur */}
             <div class={`user-menu ${userMenu}`}>
@@ -116,8 +120,14 @@ export function Modal({visible, setVisible, data, title, hideModal, onSubmit}){
             setForm(<FormOrganisation data={dataSend} hideModal={closeModal} />);
         }else if(data?.form == "formcategorieutilisateurorg"){
             setForm(<FormCategorieutilisateurOrg data={dataSend} hideModal={closeModal} />);
+        }else if(data?.form == "formcategorieutilisateur"){
+            setForm(<FormCategorieUtilisateur data={dataSend} hideModal={closeModal} />);
+        }else if(data?.form == "formfonct"){
+            setForm(<FormFonctionnalite data={dataSend} hideModal={closeModal} />);
+        }else if(data?.form == "formassignerdomaine") {
+            setForm(<FormassignerDomaine data={dataSend} hideModal={closeModal} />);
         }else{
-
+            setForm(<p>Formulaire non trouvé</p>);
         }
     },[visible, data, dataSend]);
     useEffect(() => {

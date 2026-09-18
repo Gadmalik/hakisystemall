@@ -129,6 +129,76 @@ export function FormUser({data, hideModal}){
     )
 }
 
+export function FormFonctionnalite ({data, hideModal, onSubmit}) {
+    
+    const [fonctionnalite,setFonctionnalite] = useState({
+        designation:"",
+        description:"",
+        route:"",
+        icone:"",
+        parentid:"",
+    });
+    const [errors, setErrors] = useState({});
+    const [visibleLoader,setVisibleLoader] = useState(false);
+    const [listfonctionnalite, setListFonctionnalites] = useState([]);
+    const submitFonctionnalite = async (event) => {
+        event.preventDefault();
+        setVisibleLoader(true);
+        if(fonctionnalite.designation == "" || fonctionnalite.description == "" || fonctionnalite.route == "" || fonctionnalite.icone == ""){
+            fonctionnalite.designation == "" ? setErrors({...errors, designation: "La désignation est requise"}) : setErrors({...errors, designation: ""});
+            fonctionnalite.description == "" ? setErrors({...errors, description: "La description est requise"}) : setErrors({...errors, description: ""});
+            fonctionnalite.route == "" ? setErrors({...errors, route: "La route est requise"}) : setErrors({...errors, route: ""});
+            fonctionnalite.icone == "" ? setErrors({...errors, icone: "L'icone est requise"}) : setErrors({...errors, icone: ""});
+            setVisibleLoader(false);
+            return;
+        }
+        try{
+            await fetch(`${link}/fonctionnalite`, {
+                method: "post",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(fonctionnalite)
+            }).then((response) => response.json()).then((data) => {
+                if(data.status == "success"){
+                    alert("Fonctionnalité ajoutée avec succès");
+                    hideModal();
+                    onSubmit();
+                }
+            })
+        }catch(error){
+            console.log(error);
+        }
+    }
+    
+    useEffect(() => {
+        setListFonctionnalites(data?.fonctionnalites || [])
+    },[data])
+    return (
+        <>
+            <form id="formfonctionnalite" onSubmit={submitFonctionnalite}>
+                <div className="modal-form-grid">
+                    <InputForm value={fonctionnalite.designation} onchange={(value)=> setFonctionnalite({...fonctionnalite, designation: value})} placeholder="Ex: gestion des utilisateurs" type="text" label="Désignation" id="designation" require={true} error={errors.designation} icon="user"/>
+                    <InputForm value={fonctionnalite.description} onchange={(value)=> setFonctionnalite({...fonctionnalite, description: value})} placeholder="Ex: gestion des utilisateurs" type="text" label="Description" id="description" require={true} error={errors.description} icon="comment"/>
+                    <SelectForm value={fonctionnalite.parentid} onchange={(value)=> setFonctionnalite({...fonctionnalite, parentid: value})} placeholder="Ex: gestion des utilisateurs" type="text" label="Parent" id="parent" require={false} error={errors.parentid} icon="user-tag" options={listfonctionnalite?.map((f) => ({value:f.fonctionnaliteid, label:f.designation}))}/>
+                    <InputForm value={fonctionnalite.route} onchange={(value)=> setFonctionnalite({...fonctionnalite, route: value})} placeholder="Ex: /gestion/utilisateurs" type="text" label="Route" id="route" require={true} error={errors.route} icon="path"/>
+                    <InputForm value={fonctionnalite.icone} onchange={(value)=> setFonctionnalite({...fonctionnalite, icone: value})} placeholder="Ex: fa fa-user" type="text" label="Icône" id="icone" require={true} error={errors.icone} icon="icon"/>
+                    {/* icone preview */}
+                    {fonctionnalite.icone && (
+                        <div className="form-group">
+                            <label htmlFor="icone">Aperçu</label>
+                            <div className="form-control">
+                                <i className={`fas fa-${fonctionnalite.icone} fa-lg`}></i>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div className="form-actions">
+                    <button type="submit" className="btn btn-primary"><i class={`fas fa-${ visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
+                </div>
+            </form>
+        </>
+    )
+}
+
 export function FormSignaler ({data, hideModal, onSubmit}) {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
     const [visibleLoader, setVisibleLoader] = useState(false);
@@ -253,6 +323,8 @@ export function FormOrganisation ({data, hideModal, onSubmit}){
     const [userinfo,setUserInfo] = useState(JSON.parse(localStorage.getItem("userinfo")));
     const [visibleLoader, setVisibleLoader] = useState(false);
     const [listTypeOrganisation, setListTypeOrganisation] = useState([]);
+    const [activePart, setActivePart] = useState(1);
+    const [domaineintervention,setDomaineIntervention] = useState([])
     const [organisation, setOrganisation] = useState({
         designation:"",
         sigle:"",
@@ -266,7 +338,8 @@ export function FormOrganisation ({data, hideModal, onSubmit}){
         site_web:"",
         reseaux_sociaux:"",
         logo_url:"",
-        userid:userinfo?.userid
+        userid:userinfo?.userid,
+        domaineintervention:[]
     })
     const [errors, setErrors] = useState({
         designation:"",
@@ -301,10 +374,10 @@ export function FormOrganisation ({data, hideModal, onSubmit}){
 
         }
     }
+
     const ajouter = async (event) => {
-        console.log(userinfo)
-        event.preventDefault();
         const formData = new FormData();
+        setErrors({});
         formData.append("designation", organisation.designation);
         formData.append("sigle", organisation.sigle);
         formData.append("typeorganisationid", organisation.typeorganisationid);
@@ -324,18 +397,20 @@ export function FormOrganisation ({data, hideModal, onSubmit}){
             await fetch(`${link}/organisation/add`, {
                 method: "post",
                 body: formData,
-            }).then((reponse) => reponse.json()).then((data) => {
-                console.log(data);
-                if(data.success){
+            }).then((reponse) => reponse.json()).then((returneddata) => {
+                console.log(returneddata);
+                if(returneddata.success){
                     setVisibleLoader(false);
-                    alert(data.message);
-                    hideModal();
-                    setErrors({});
-                    setOrganisation({...organisation, designation: "", sigle: "", typeorganisationid: "", pays: "", province: "", ville: "", adresse_org: "", telephone_org: "", email_org: "", site_web: "", reseaux_sociaux: "", logo_url: ""});
-                    navigate("/welcome");
+                    setActivePart(2);
+                    setOrganisation({...organisation, organisationid: returneddata.data.organisationid});
+                    // alert(data.message);
+                    // hideModal();
+                    // setErrors({});
+                    // setOrganisation({...organisation, designation: "", sigle: "", typeorganisationid: "", pays: "", province: "", ville: "", adresse_org: "", telephone_org: "", email_org: "", site_web: "", reseaux_sociaux: "", logo_url: ""});
+                    // navigate("/welcome");
                 }else{
                     setVisibleLoader(false);
-                    setErrors({message:data.error});
+                    setErrors({message:returneddata.message});
                 }
             }).catch((error) => {
                 console.log(error);
@@ -347,65 +422,284 @@ export function FormOrganisation ({data, hideModal, onSubmit}){
 
         }
     }
+
+    const assignerDomaine = async (event) => {
+        console.log(organisation);
+        const data = {
+            organisationid: organisation.organisationid,
+            domaineintervention: organisation.domaineintervention
+        }
+        try {
+            setVisibleLoader(true);
+            await fetch(`${link}/assignerdomaine`, {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            }).then((reponse) => reponse.json()).then((returneddata) => {
+                console.log(returneddata?.message);
+                if(returneddata.success){
+                    setVisibleLoader(false);
+                    alert(returneddata.message);
+                    hideModal();
+                    setErrors({});
+                    setOrganisation({...organisation, designation: "", sigle: "", typeorganisationid: "", pays: "", province: "", ville: "", adresse_org: "", telephone_org: "", email_org: "", site_web: "", reseaux_sociaux: "", logo_url: ""});
+                    navigate("/welcome");
+                }else{
+                    setVisibleLoader(false);
+                    setErrors({message:returneddata.message});
+                }
+            }).catch((error) => {
+                console.log(error);
+
+                setVisibleLoader(false);
+            });
+        } catch (error) {
+            console.log(error);
+            setVisibleLoader(false);
+
+        }
+    }
+
+    const handleCheckboxChange = (event) => {
+        const { value, checked } = event.target;
+        setOrganisation(prevOrganisation => {
+            let updatedIntervention = [...prevOrganisation.domaineintervention];
+            
+            if (checked) {
+                // Ajouter le domaine si coché
+                updatedIntervention.push(parseInt(value, 10));
+            } else {
+                // Retirer le domaine si décoché
+                updatedIntervention = updatedIntervention.filter(
+                    item => item !== parseInt(value, 10)
+                );
+            }
+            
+            return {
+                ...prevOrganisation,
+                domaineintervention: updatedIntervention
+            };
+        });
+    };
+    
     useEffect(() => {
         loadTypeOrganisation();
     }, [])
+    useEffect(() => {
+        if(data){
+            setDomaineIntervention(data?.domaineintervention ? data?.domaineintervention : []);
+        }
+    }, [data])
+
+    useEffect(() => {
+        console.log(errors);
+    }, [errors])
+
     return (
         <form id="incidentForm" onSubmit={(event) => ajouter(event)}>
-            <div class="modal-form-grid">
-                <InputForm value={organisation.designation} onchange={(value) => setOrganisation({...organisation, designation: value})} placeholder="Ex: Lonford" type="text" label="Designation de l'organisation" id="designation" require={true} error={errors.designation} icon="building"/>
-                <InputForm value={organisation.sigle} onchange={(value) => setOrganisation({...organisation, sigle: value})} placeholder="Ex: LFD" type="text" label="Sigle de l'organisation" id="designation" require={true} error={errors.sigle} icon="tag"/>
-                <SelectForm error={errors.typeorganisationid} icon={"building"} label={"Categorie d'organisation"} require={true} options={listTypeOrganisation.map((item) => {return {label: item.libelle, value: item.typeorganisationid}})} onchange={(value) => setOrganisation({...organisation, typeorganisationid: value})} />
-                <SelectForm icon={"globe"} label={"Pays"} require={true} options={Object.entries(countryList).map(([key, value]) => {return {label: value, value: key}})} onchange={(value) => setOrganisation({...organisation, pays: value})} />
-                <InputForm value={organisation.province} onchange={(value) => setOrganisation({...organisation, province: value})} placeholder="Ex: Sud Ouest" type="text" label="Province" id="province" require={true} error={errors.province} icon="map-marker"/>
-                <InputForm value={organisation.ville} onchange={(value) => setOrganisation({...organisation, ville: value})} placeholder="Ex: Buea" type="text" label="Ville" id="ville" require={true} error={errors.ville} icon="map-marker"/>
-                <InputForm value={organisation.adresse_org} onchange={(value) => setOrganisation({...organisation, adresse_org: value})} placeholder="Ex: Rue de la paix" type="text" label="Adresse" id="adresse" require={true} error={errors.adresse} icon="map-marker"/>
-                <InputForm value={organisation.telephone_org} onchange={(value) => setOrganisation({...organisation, telephone_org: value})} placeholder="Ex: 699 99 99 99" type="text" label="Telephone" id="telephone" require={true} error={errors.telephone_org} icon="phone"/>
-                <InputForm value={organisation.email_org} onchange={(value) => setOrganisation({...organisation, email_org: value})} placeholder="Ex: [EMAIL_ADDRESS]" type="text" label="Email" id="email" require={true} error={errors.email_org} icon="envelope"/>
-                <InputForm value={organisation.site_web} onchange={(value) => setOrganisation({...organisation, site_web: value})} placeholder="Ex: www.lonford.org" type="text" label="Site Web" id="site_web" require={false} error={errors.site_web} icon="globe"/>
-                <InputForm value={organisation.reseaux_sociaux} onchange={(value) => setOrganisation({...organisation, reseaux_sociaux: value})} placeholder="Ex: www.lonford.org" type="text" label="Reseaux Sociaux" id="reseaux_sociaux" require={false} error={errors.reseaux_sociaux} icon="globe"/>
+
+            <div class="stepper" style={{padding:"10px 0"}}>
+                <div class="stepper-progress" id="progress" style={{width: `${(activePart - 1) * 100}%`}}></div>
+
+                <div class={`step ${activePart == 1 ? 'active' : activePart > 1 ? 'completed' : ''}`}>
+                    <div class="step-number">{activePart > 1 ? '✓' : 1}</div>
+                    <div class="step-label">Informations</div>
+                </div>
+                
+                <div class={`step ${activePart == 2 ? 'active' : activePart > 2 ? 'completed' : ''}`}>
+                    <div class="step-number">{activePart > 2 ? '✓' : 2}</div>
+                    <div class="step-label">Domaines</div>
+                </div>
             </div>
-            <div class="modal-form-group">
-                <div className="flex items-center">
-                    <i className="fa-solid fa-upload"></i>
-                    <label>Logo de l'organisation</label>
+            {activePart == 1 && 
+            <>
+                <div class="modal-form-grid">
+                    <InputForm value={organisation.designation} onchange={(value) => setOrganisation({...organisation, designation: value})} placeholder="Ex: Lonford" type="text" label="Designation de l'organisation" id="designation" require={true} error={errors.designation} icon="building"/>
+                    <InputForm value={organisation.sigle} onchange={(value) => setOrganisation({...organisation, sigle: value})} placeholder="Ex: LFD" type="text" label="Sigle de l'organisation" id="designation" require={true} error={errors.sigle} icon="tag"/>
+                    <SelectForm error={errors.typeorganisationid} icon={"building"} label={"Categorie d'organisation"} require={true} options={listTypeOrganisation.map((item) => {return {label: item.libelle, value: item.typeorganisationid}})} onchange={(value) => setOrganisation({...organisation, typeorganisationid: value})} />
+                    <SelectForm icon={"globe"} label={"Pays"} require={true} options={Object.entries(countryList).map(([key, value]) => {return {label: value, value: key}})} onchange={(value) => setOrganisation({...organisation, pays: value})} />
+                    <InputForm value={organisation.province} onchange={(value) => setOrganisation({...organisation, province: value})} placeholder="Ex: Sud Ouest" type="text" label="Province" id="province" require={true} error={errors.province} icon="map-marker"/>
+                    <InputForm value={organisation.ville} onchange={(value) => setOrganisation({...organisation, ville: value})} placeholder="Ex: Buea" type="text" label="Ville" id="ville" require={true} error={errors.ville} icon="map-marker"/>
+                    <InputForm value={organisation.adresse_org} onchange={(value) => setOrganisation({...organisation, adresse_org: value})} placeholder="Ex: Rue de la paix" type="text" label="Adresse" id="adresse" require={true} error={errors.adresse} icon="map-marker"/>
+                    <InputForm value={organisation.telephone_org} onchange={(value) => setOrganisation({...organisation, telephone_org: value})} placeholder="Ex: 699 99 99 99" type="text" label="Telephone" id="telephone" require={true} error={errors.telephone_org} icon="phone"/>
+                    <InputForm value={organisation.email_org} onchange={(value) => setOrganisation({...organisation, email_org: value})} placeholder="Ex: [EMAIL_ADDRESS]" type="text" label="Email" id="email" require={true} error={errors.email_org} icon="envelope"/>
+                    <InputForm value={organisation.site_web} onchange={(value) => setOrganisation({...organisation, site_web: value})} placeholder="Ex: www.lonford.org" type="text" label="Site Web" id="site_web" require={false} error={errors.site_web} icon="globe"/>
+                    <InputForm value={organisation.reseaux_sociaux} onchange={(value) => setOrganisation({...organisation, reseaux_sociaux: value})} placeholder="Ex: www.lonford.org" type="text" label="Reseaux Sociaux" id="reseaux_sociaux" require={false} error={errors.reseaux_sociaux} icon="globe"/>
                 </div>
-                <div class="file-upload">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Cliquez pour ajouter des fichiers</p>
-                    <small>Max 20 Mo (PDF, JPG, PNG)</small>
-                    <input type="file" multiple id="logo-input" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => { setOrganisation({...organisation, logo_url: e.target.files[0]})}}  />
+                <div class="modal-form-group">
+                    <div className="flex items-center">
+                        <i className="fa-solid fa-upload"></i>
+                        <label>Logo de l'organisation</label>
+                    </div>
+                    <div class="file-upload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Cliquez pour ajouter des fichiers</p>
+                        <small>Max 20 Mo (PDF, JPG, PNG)</small>
+                        <input type="file" multiple id="logo-input" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => { setOrganisation({...organisation, logo_url: e.target.files[0]})}}  />
+                    </div>
+                    <div className="logo-container" align="center">
+                        {organisation.logo_url && (
+                            <div className="image-wrapper">
+                                <img src={URL.createObjectURL(organisation.logo_url)} alt="Aperçu" className="uploaded-image" />
+                                <button 
+                                    type="button" 
+                                    onClick={() => {
+                                        setOrganisation({...organisation, logo_url: null});
+                                        document.getElementById('logo-input').value = '';
+                                    }}
+                                    className="remove-btn"
+                                    title="Supprimer l'image"
+                                >
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            </div>
+                        )}
+                        {!organisation.logo_url && (
+                            <div className="placeholder">
+                                <i className="fas fa-image"></i>
+                                <p>Aucune image sélectionnée</p>
+                            </div>
+                        )}
+                    </div>
+                </div> 
+                {/* error */}
+                {errors.message && <div class="form-error" style={{color:"red", fontSize:"13px" }} align="center">{errors.message}</div>}
+                
+                <div class="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
+                    <button type="button" onClick={() => ajouter()} class="btn btn-primary"><i class={`fas fa-${ visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "arrow-right"}`}></i> Suivant</button>
                 </div>
-                <div className="logo-container" align="center">
-                    {organisation.logo_url && (
-                        <div className="image-wrapper">
-                            <img src={URL.createObjectURL(organisation.logo_url)} alt="Aperçu" className="uploaded-image" />
-                            <button 
-                                type="button" 
-                                onClick={() => {
-                                    setOrganisation({...organisation, logo_url: null});
-                                    document.getElementById('logo-input').value = '';
-                                }}
-                                className="remove-btn"
-                                title="Supprimer l'image"
-                            >
-                                <i class="fa-solid fa-times"></i>
-                            </button>
-                        </div>
-                    )}
-                    {!organisation.logo_url && (
-                        <div className="placeholder">
-                            <i className="fas fa-image"></i>
-                            <p>Aucune image sélectionnée</p>
-                        </div>
-                    )}
+            </>
+            }
+            {activePart == 2 && 
+                <>
+                <div>
+                    <div className="flex items-center">
+                        <i className="fa-solid fa-map-marker"></i>
+                        <label>Domaines d'intervention de l'organisation</label>
+                        {
+                            domaineintervention.map((item, index) => {
+                                return(
+                                    <div style={{display: "flex", gap: "5px"}} key={index}>
+                                        <input className="form-check-input" type="checkbox" id={`domaine-${index}`} value={item.categorie_id} onChange={(event) => handleCheckboxChange(event)} checked={organisation.domaineintervention.includes(item.categorie_id)} />
+                                        <label className="form-check-label" htmlFor={`domaine-${index}`}>{item.designation}</label>
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
+                        {errors.message && <div class="form-error" style={{color:"red", fontSize:"13px"}} align="center">{errors.message}</div>}
+                    <div class="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
+                        <button type="button" onClick={() => assignerDomaine()} class="btn btn-primary"><i class={`fas fa-${ visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
+                    </div>
                 </div>
-            </div> 
-            <div class="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
-                <button type="submit" class="btn btn-primary"><i class={`fas fa-${ visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
-            </div>
+                </>
+            }
         </form>
     )
+}
+
+export function FormassignerDomaine({data, hideModal}){
+    const link = process.env.REACT_APP_LINK;
+    const navigate = useNavigate();
+    const [userinfo,setUserInfo] = useState(JSON.parse(localStorage.getItem("userinfo")));
+    const [visibleLoader, setVisibleLoader] = useState(false);
+    const [listDomaine, setListDomaine] = useState(data?.domaineintervention || []);
+    const [domaine, setDomaine] = useState({
+        organisationid:userinfo.organisationid,
+        domaineintervention:[],
+        userid:userinfo?.userid
+    });
+    const [errors, setErrors] = useState({
+        organisationid:"",
+        domaineintervention:"",
+        userid:""
+    })
+
+    const assignerDomaine = async (event) => {
+        console.log(domaine);
+        try {
+            setVisibleLoader(true);
+            await fetch(`${link}/assignerdomaine`, {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(domaine),
+            }).then((reponse) => reponse.json()).then((returneddata) => {
+                console.log(returneddata?.message);
+                if(returneddata.success){
+                    setVisibleLoader(false);
+                    alert(returneddata.message);
+                    hideModal();
+                    setErrors({});
+                    localStorage.setItem("userinfo",JSON.stringify(returneddata?.data));
+                    setDomaine({organisationid:data?.organisationid, domaineintervention:[], userid:userinfo?.userid});
+                }else{
+                    setVisibleLoader(false);
+                    setErrors({message:returneddata.message});
+                }
+            }).catch((error) => {
+                console.log(error);
+
+                setVisibleLoader(false);
+            });
+        } catch (error) {
+            console.log(error);
+            setVisibleLoader(false);
+
+        }
+    }
+
+    const handleCheckboxChange = (event) => {
+        const { value, checked } = event.target;
+        setDomaine(prevDomaine => {
+            let updatedIntervention = [...prevDomaine.domaineintervention];
+            
+            if (checked) {
+                // Ajouter le domaine si coché
+                updatedIntervention.push(parseInt(value, 10));
+            } else {
+                // Retirer le domaine si décoché
+                updatedIntervention = updatedIntervention.filter(
+                    item => item !== parseInt(value, 10)
+                );
+            }
+            
+            return {
+                ...prevDomaine,
+                domaineintervention: updatedIntervention
+            };
+        });
+    };
+    useEffect(() => {
+        setListDomaine(data?.domaineintervention || []);
+    }, [data]);
+
+    return (
+        <div>
+            <div className="flex items-center">
+                <i className="fa-solid fa-map-marker"></i>
+                <label>Domaines d'interventions</label>
+                {
+                    listDomaine.map((item, index) => {
+                        return(
+                            <div style={{display: "flex", gap: "5px"}} key={index}>
+                                <input className="form-check-input" type="checkbox" id={`domaine-${index}`} value={item.categorie_id} onChange={(event) => handleCheckboxChange(event)} checked={domaine.domaineintervention.includes(item.categorie_id)} />
+                                <label className="form-check-label" htmlFor={`domaine-${index}`}>{item.designation}</label>
+                            </div>
+                        )
+                    })
+                }
+            </div>
+                {errors.message && <div class="form-error" style={{color:"red", fontSize:"13px"}} align="center">{errors.message}</div>}
+            <div class="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
+                <button type="button" onClick={() => assignerDomaine()} class="btn btn-primary"><i class={`fas fa-${ visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
+            </div>
+        </div>
+    )
+    
 }
 
 export function FormCategorieutilisateurOrg({data, hideModal}){
@@ -416,9 +710,25 @@ export function FormCategorieutilisateurOrg({data, hideModal}){
         libelle:"",
         description:"",
         organisationid:user.organisationid,
+        fonctionnalites:[]
     });
+    const [fonctionnalites, setFonctionnalites] = useState(data?.fonctionnalites ? data?.fonctionnalites : []);
     const [error, setError] = useState("");
     const [visibleLoader, setVisibleLoader] = useState(false);
+
+    const verifStep1 = async () => {
+        setError({});
+        if(categorieutilisateurorg.libelle == ""){
+            setError({libelle:"Veuillez saisir un libelle"});
+            return false;
+        }
+        if(categorieutilisateurorg.description == ""){
+            setError({description:"Veuillez saisir une description"});
+            return false;
+        }
+        setActivePart(2);
+        return true;
+    }
     const ajouter = async (event) => {
         event.preventDefault();
 
@@ -436,10 +746,12 @@ export function FormCategorieutilisateurOrg({data, hideModal}){
             if(data.status =="success"){
                 alert("Categorie d'utilisateur d'organisation ajoutée avec succès !");
                 hideModal();
+                setActivePart(1);
                 setCategorieutilisateurorg({
                     libelle:"",
                     description:"",
                     organisationid:user.organisationid,
+                    fonctionnalites:[]
                 });
                 setError("")
             }else{
@@ -452,10 +764,20 @@ export function FormCategorieutilisateurOrg({data, hideModal}){
         })
     }
 
+    useEffect(() => {
+        setFonctionnalites(data?.fonctionnalites ? data?.fonctionnalites : []);
+        setCategorieutilisateurorg(data?.categorieutilisateurorg ? data?.categorieutilisateurorg : {
+            libelle:"",
+            description:"",
+            organisationid:user.organisationid,
+            fonctionnalites:[]
+        });
+    }, [data]);
+
     return(
         <form onSubmit={ajouter} className="form-container">
-            <div class="stepper">
-                <div class="stepper-progress" id="progress" style={{width: `${(activePart - 1) * 50}%`}}></div>
+            <div class="stepper" style={{padding:"10px 0"}}>
+                <div class="stepper-progress" id="progress" style={{width: `${(activePart - 1) * 100}%`}}></div>
 
                 <div class={`step ${activePart == 1 ? 'active' : activePart > 1 ? 'completed' : ''}`}>
                     <div class="step-number">{activePart > 1 ? '✓' : 1}</div>
@@ -467,13 +789,152 @@ export function FormCategorieutilisateurOrg({data, hideModal}){
                     <div class="step-label">Rôles</div>
                 </div>
             </div>
-            <div class="modal-form-grid">
-                <InputForm value={categorieutilisateurorg.libelle} onchange={(value) => setCategorieutilisateurorg({...categorieutilisateurorg, libelle:value})} placeholder="Ex: Redacteur" type="text" label="Libelle" id="libelle" require={true} error={error} icon="user"/>
-                <InputForm value={categorieutilisateurorg.description} onchange={(value) => setCategorieutilisateurorg({...categorieutilisateurorg, description:value})} placeholder="Ex: Utilisateurs redacteurs" type="text" label="Description" id="description" require={true} error={error} icon="info"/>
+            {activePart == 1 && (
+            <div style={{margin:"10px"}}>
+                <div class="modal-form-grid">
+                    <InputForm value={categorieutilisateurorg.libelle} onchange={(value) => setCategorieutilisateurorg({...categorieutilisateurorg, libelle:value})} placeholder="Ex: Redacteur" type="text" label="libelle" id="libelle" require={true} error={error.libelle} icon="user"/>
+                    <InputForm value={categorieutilisateurorg.description} onchange={(value) => setCategorieutilisateurorg({...categorieutilisateurorg, description:value})} placeholder="Ex: Utilisateurs redacteur" type="text" label="Description" id="description" require={true} error={error.description} icon="info"/>
+                </div>
+                <div className="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
+                    <button type="button" className="btn btn-primary" onClick={() => verifStep1()}>Suivant</button>
+                </div>
             </div>
-            <div className="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
-                <button type="submit" className="btn btn-primary"><i className={`fas fa-${visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
+            )}
+            {activePart == 2 && (
+                <div style={{margin:"10px"}}>
+                    <p style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px",fontSize:"1.2rem",fontWeight:"bold"}}><i className="fas fa-list"></i> Listes des fonctionnalites</p>
+                    {
+                        fonctionnalites.map((fonctionnalite) => (
+                            <div key={fonctionnalite.fonctionnaliteid} className="form-check" style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px",borderRadius:"5px",textAlign:"left"}}>
+                                <input type="checkbox" id={fonctionnalite.fonctionnaliteid} style={{width:"20px",height:"20px"}} onChange={(event) => event.target.checked ? setCategorieutilisateurorg({...categorieutilisateurorg, fonctionnalites: [...categorieutilisateurorg.fonctionnalites, fonctionnalite.fonctionnaliteid]}) : setCategorieutilisateurorg({...categorieutilisateurorg, fonctionnalites: categorieutilisateurorg.fonctionnalites.filter((id) => id !== fonctionnalite.fonctionnaliteid)})  } />
+                                <span className="checkmark"><i className={`fas fa-${fonctionnalite.icone}`}></i></span>
+                                <label htmlFor={fonctionnalite.fonctionnaliteid}>{fonctionnalite.designation}</label>
+                            </div>
+                        ))
+                    }
+                    <div className="form-actions" style={{display:"flex",justifyContent:"space-between"}}>
+                        <button type="button" className="btn" onClick={() => setActivePart(activePart - 1)}>Retour</button>
+                        <button type="submit" className="btn btn-primary"><i className={`fas fa-${visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
+                    </div>
+                </div>
+            )}
+        </form>
+    )
+}
+
+
+export function FormCategorieUtilisateur({data, hideModal}){
+    const link = process.env.REACT_APP_LINK;
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
+    const [activePart, setActivePart] = useState(1);
+    const [categorieutilisateur, setCategorieutilisateur] = useState({
+        designation:"",
+        description:"",
+        confirm: false,
+        organisation: false,
+        fonctionnalites: []
+    });
+    const [fonctionnalites, setFonctionnalites] = useState(data?.fonctionnalites ? data?.fonctionnalites : []);
+    const [error, setError] = useState({});
+    const [visibleLoader, setVisibleLoader] = useState(false);
+
+    const verifStep1 = async () => {
+        setError({});
+        if(categorieutilisateur.designation == ""){
+            setError({designation:"Veuillez saisir une designation"});
+            return false;
+        }
+        if(categorieutilisateur.description == ""){
+            setError({description:"Veuillez saisir une description"});
+            return false;
+        }
+        setActivePart(2);
+        return true;
+    }
+    const ajouter = async (event) => {
+        event.preventDefault();
+
+        setVisibleLoader(true);
+        await fetch(`${link}/categorieutilisateur`, {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+            },
+            body:JSON.stringify(categorieutilisateur),
+        }).then((res) => res.json()).then((data) => {
+            console.log(data);
+            
+            setVisibleLoader(false);
+            if(data.status =="success"){
+                alert("Categorie d'utilisateur ajoutée avec succès !");
+                hideModal();
+                setCategorieutilisateur({
+                    designation:"",
+                    description:"",
+                    confirm: true,
+                    organisation: true,
+                    fonctionnalites: []
+                });
+                setError("")
+            }else{
+                setError(data.message);
+            }
+        }).catch((error) => {
+            setError("Une erreur s'est produite ! ");
+            console.error(error);
+            setVisibleLoader(false);
+        })
+    }
+
+    useEffect(() => {
+        setFonctionnalites(data?.fonctionnalites ? data?.fonctionnalites : []);
+    },[data])
+    return(
+        <form onSubmit={ajouter} className="form-container">
+            <div class="stepper" style={{padding: "5px"}}>
+                <div class="stepper-progress" id="progress" style={{width: `${(activePart - 1) * 100}%`}}></div>
+
+                <div class={`step ${activePart == 1 ? 'active' : activePart > 1 ? 'completed' : ''}`}>
+                    <div class="step-number">{activePart > 1 ? '✓' : 1}</div>
+                    <div class="step-label">Informations</div>
+                </div>
+                
+                <div class={`step ${activePart == 2 ? 'active' : activePart > 2 ? 'completed' : ''}`}>
+                    <div class="step-number">{activePart > 2 ? '✓' : 2}</div>
+                    <div class="step-label">Rôles</div>
+                </div>
             </div>
+            {activePart == 1 && (
+            <div> 
+                <div class="modal-form-grid">
+                    <InputForm value={categorieutilisateur.designation} onchange={(value) => setCategorieutilisateur({...categorieutilisateur, designation:value})} placeholder="Ex: Administrateur" type="text" label="Designation" id="designation" require={true} error={error.designation} icon="user"/>
+                    <InputForm value={categorieutilisateur.description} onchange={(value) => setCategorieutilisateur({...categorieutilisateur, description:value})} placeholder="Ex: Utilisateurs administrateurs" type="text" label="Description" id="description" require={true} error={error.description} icon="info"/>
+                    <InputForm value={categorieutilisateur.confirm} onchange={(value) => setCategorieutilisateur({...categorieutilisateur, confirm:value})} type="checkbox" label="Confirm" id="confirm" require={true} error={error.confirm} icon="info"/>
+                    <InputForm value={categorieutilisateur.organisation} onchange={(value) => setCategorieutilisateur({...categorieutilisateur, organisation:value})} type="checkbox" label="Organisation" id="organisation" require={true} error={error.organisation} icon="info"/>
+                </div>
+                <div className="form-actions" style={{display:"flex",justifyContent:"flex-end"}}>
+                    <button type="button" className="btn btn-primary" onClick={() => verifStep1()}>Suivant</button>
+                </div>
+            </div>
+            )}
+            {activePart == 2 && (
+                <div>
+                    <p style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px",fontSize:"1.2rem",fontWeight:"bold"}}><i className="fas fa-list"></i> Listes des fonctionnalites</p>
+                    {
+                        fonctionnalites.map((fonctionnalite) => (
+                            <div key={fonctionnalite.fonctionnaliteid} className="form-check" style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px",borderRadius:"5px",textAlign:"left"}}>
+                                <input type="checkbox" id={fonctionnalite.fonctionnaliteid} style={{width:"20px",height:"20px"}} onChange={(event) => event.target.checked ? setCategorieutilisateur({...categorieutilisateur, fonctionnalites: [...categorieutilisateur.fonctionnalites, fonctionnalite.fonctionnaliteid]}) : setCategorieutilisateur({...categorieutilisateur, fonctionnalites: categorieutilisateur.fonctionnalites.filter((id) => id !== fonctionnalite.fonctionnaliteid)})  } />
+                                <span className="checkmark"><i className={`fas fa-${fonctionnalite.icone}`}></i></span>
+                                <label htmlFor={fonctionnalite.fonctionnaliteid}>{fonctionnalite.designation}</label>
+                            </div>
+                        ))
+                    }
+                    <div className="form-actions" style={{display:"flex",justifyContent:"space-between"}}>
+                        <button type="button" className="btn" onClick={() => setActivePart(activePart - 1)}>Retour</button>
+                        <button type="submit" className="btn btn-primary"><i className={`fas fa-${visibleLoader ? "spinner fa-pulse fa-fw loader-text" : "save"}`}></i> Enregistrer</button>
+                    </div>
+                </div>
+            )}
         </form>
     )
 }

@@ -3,7 +3,7 @@ import { Header, Modal } from "../components/Essential";
 import { useNavigate } from "react-router-dom";
 import { HeaderButton, Loader } from "../components/MiniComp";
 
-export function CategorieUtilisateursOrg() {
+export function CategorieUtilisateurs() {
     const user = JSON.parse(localStorage.getItem("userinfo"));
     const [visibleModal, setVisibleModal] = useState(false);
     const [categorieUtilisateur, setCategorieUtilisateur] = useState([]);
@@ -19,24 +19,9 @@ export function CategorieUtilisateursOrg() {
     const loadCategorieUtilisateurs = async () => {
         setLoaderVisible(true)
         try {
-            await fetch(`${link}/getcategorieutilisateurorg/${user.organisationid}`).then((response) => response.json()).then((data) => {
-                console.log(data, user.organisationid)
+            await fetch(`${link}/categorieutilisateur`).then((response) => response.json()).then((data) => {
                 if(data.success){
                     setCategorieUtilisateur(data.data);
-                }
-                setLoaderVisible(false)
-            });
-        } catch (error) {
-            console.log(error);
-            setLoaderVisible(false)
-        }
-    }
-    const loadFonctionnalites = async () => {
-        setLoaderVisible(true)
-        try {
-            await fetch(`${link}/fonctionnalites`).then((response) => response.json()).then((data) => {
-                if(data.success){
-                    setFonctionnalites(data.data);
                 }
                 setLoaderVisible(false)
             });
@@ -55,6 +40,20 @@ export function CategorieUtilisateursOrg() {
     const searchCategorieUtilisateur = (e) => {
         const search = e.target.value;
         setFilteredCategorieUtilisateur(categorieUtilisateur.filter((categorie) => `${categorie.libelle} ${categorie.description}`.toLowerCase().includes(search.toLowerCase())));
+    }
+    const loadFonctionnalites = async () => {
+        setLoaderVisible(true)
+        try {
+            await fetch(`${link}/fonctionnalites`).then((response) => response.json()).then((data) => {
+                if(data.success){
+                    setFonctionnalites(data.data);
+                }
+                setLoaderVisible(false)
+            });
+        } catch (error) {
+            console.log(error);
+            setLoaderVisible(false)
+        }
     }
     const executeAction = async (action) => {
         // try {
@@ -95,7 +94,7 @@ export function CategorieUtilisateursOrg() {
             <Header title={"Categories d'utilisateurs"} searchFunction={searchCategorieUtilisateur} />
             {loaderVisible && <Loader />}
             <Modal 
-                data={{form:"formcategorieutilisateurorg", fonctionnalites}}
+                data={{form:"formcategorieutilisateur", fonctionnalites}}
                 title={"Ajouter une catégorie d'utilisateur"}
                 setVisible={setVisibleModal}
                 visible={visibleModal}
@@ -125,7 +124,7 @@ export function CategorieUtilisateursOrg() {
                                             <td align="center">
                                                 <input type="checkbox" value={categorieutilisateur.categorieutilisateurid} onChange={(e) => handleCheckboxChange(e, categorieutilisateur.categorieutilisateurid)} />
                                             </td>
-                                            <td><b>{categorieutilisateur.libelle}</b></td>
+                                            <td><b>{categorieutilisateur.designation}</b></td>
                                             <td>{categorieutilisateur.description}</td>
                                             <td><span className={`badge badge-${categorieutilisateur.status === "actif" ? "success" : "warn"}`}>{categorieutilisateur.status}</span></td>
                                         </tr>

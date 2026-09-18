@@ -5,13 +5,14 @@ import path from "path";
 import { addArticle, getArticle, getDossier, getUser, setEtatAttribut, suivreDossier, updateProfile } from "./queries.js";
 import multer from "multer";
 import { fileURLToPath } from 'url';
-import { AddUtilisateur, AddUtilisateurOrg, getCategorieUtilisateur, getUserByCode, login, SetMdpUtilisateur } from "./services/utilisateurs.js";
+import { AddUtilisateur, AddUtilisateurOrg, getUserByCode, GetUtilisateur, login, SetMdpUtilisateur } from "./services/utilisateurs.js";
 import { ConfirmMail, ConfirmOrgMail } from "./services/mailsModel.js";
 import { sendMail } from "./services/mail.js";
 import { AddSignalement, getIncidentByUser } from "./services/incident.js";
 import { SendNotification, SubscribeUser } from "./services/notification.js";
-import { actionOrganisations, addOrganisation, getOrganisation, getOrganisations, getTypeOrganisation } from "./services/organisation.js";
-import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, getcategorieutilisateurOrg, getUtilisateursByOrganisationId } from "./services/categorieutilisateurs.js";
+import { actionOrganisations, addOrganisation, assignerdomaine, getOrganisation, getOrganisations, getTypeOrganisation } from "./services/organisation.js";
+import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, addCatUtilisateur, getcategorieutilisateurOrg, getCatUtilisateur, getFonctionnalitesByCategorieutilisateurs, getUtilisateursByOrganisationId } from "./services/categorieutilisateurs.js";
+import { addFonctionnalites, getFonctionnalites } from "./services/fonctionnalites.js";
 
 // recréer __filename et __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -129,15 +130,13 @@ app.put("/user/code", async (req, res) => {
     }
 })
 
-app.get("/categorieutilisateur", async (req, res) => {
-    try{
-        const result = await getCategorieUtilisateur();
-        res.json(result);
-    }catch(error){
-        console.log(error);
-        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
-    }
-})
+app.get("/getfonctionnalitebycategorieutilisateur/:categorieutilisateurid/:type", async (req, res) => getFonctionnalitesByCategorieutilisateurs(req, res));
+
+app.get("/user/:id", async (req, res) => GetUtilisateur(req, res));
+
+app.get("/categorieutilisateur", async (req, res) => getCatUtilisateur(req, res));
+
+app.post("/categorieutilisateur", async (req, res) => addCatUtilisateur(req, res));
 
 app.get("/categorie_incident", async (req, res) => {
     try{
@@ -222,8 +221,8 @@ app.post("/organisation/:action", async (req, res) => {
 
 app.post("/categorieutilisateurorg", async (req, res) => {
     try{
-        const {libelle, description, organisationid, userid} = req.body;
-        const reponse = await addCategorieUtilisateurOrg({libelle, description, organisationid, userid});
+        const {libelle, description, organisationid, userid, fonctionnalites} = req.body;
+        const reponse = await addCategorieUtilisateurOrg({libelle, description, organisationid, userid, fonctionnalites});
         res.json({...reponse});
     }catch(error){
         console.log(error);
@@ -241,6 +240,9 @@ app.get("/getcategorieutilisateurorg/:organisationid", async (req, res) => {
         res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
     }
 })
+
+app.post("/assignerdomaine", async (req, res) => assignerdomaine(req, res));
+
 
 app.post("/incident", async (req, res) => {
     try{
@@ -352,6 +354,9 @@ app.post("/updateprofile", async (req, res) => {
         res.json({message:"Une erreur s'est produite !", status:"error", code:"", error});
     }
 })
+
+app.post("/fonctionnalite", (req, res, next) => addFonctionnalites(req, res, next))
+app.get("/fonctionnalites", (req, res, next) => getFonctionnalites(req, res, next))
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

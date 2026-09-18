@@ -25,6 +25,8 @@ import { OrganisationsList } from './layout/organisation';
 import { CategorieUtilisateursOrg } from './layout/Categorieutilisateurorg';
 import { UtilisateursOrg } from './layout/Utilisateursorg';
 import { ConfirmInvitation } from './layout/confirmInvitation';
+import { Fonctionnalites } from './layout/fonctionnalites';
+import { CategorieUtilisateurs } from './layout/Categorieutilisateur';
 function App() {
   // routes 
   return (
@@ -49,7 +51,9 @@ function App() {
           <Route path="mysignalement" element={<Signalement />} />
           <Route path="organisations" element={<OrganisationsList />} />
           <Route path="categorieutilisateurorg" element={<CategorieUtilisateursOrg />} />
+          <Route path="categorieutilisateur" element={<CategorieUtilisateurs />} />
           <Route path="utilisateursorg" element={<UtilisateursOrg />} />
+          <Route path="fonctionnalites" element={<Fonctionnalites />} />
         </Route>
         <Route path="/confirm-invitation/:code/:email" element={<ConfirmInvitation />} />
         <Route path="/articles/:id" element={<SingleArticl />} />

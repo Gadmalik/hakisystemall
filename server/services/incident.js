@@ -1,8 +1,15 @@
 import pool from "../db.js";
+import { SendNotification } from "./notification.js";
+import { getUtilisateursByDomaines } from "./organisation.js";
 
 export async function AddSignalement(data){
     try{
+        const clienturl = process.env.CLIENT_URL;
         const reponse = await pool.query("INSERT INTO incident(categorieid, lieu, description, date_incident, date_create, userid, status) VALUES($1, $2, $3, $4, $5, $6, $7)", [parseInt(data.type), data.lieu, data.description, data.date, data.date_create, data.userid, "actif"]);
+        const utilisateurs = await getUtilisateursByDomaines({type:data.type});
+        utilisateurs.data.forEach(async user => {
+            await SendNotification({userid:user.userid, body:`Un nouveau signalement de categorie : ${utilisateurs.data[0].designation} a été ajouté`, title: "Nouveau signalement", url:clienturl+"/home/dossiers"});
+        });
         return {data: reponse.rows[0], status:"success", code:"success"};
     }catch(error){
         console.log(error);

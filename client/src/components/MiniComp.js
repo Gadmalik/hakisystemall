@@ -31,7 +31,7 @@ export function InputForm({value, onchange, placeholder, type, label, id, requir
             {icon && <i className={`fas fa-${icon}`}></i>}
             <label htmlFor={id}>{label}</label>
         </div>
-        <input type={type} id={id} placeholder={placeholder} value={value} onChange={(event) => onchange(event.target.value)} required={require} className={`${error ? 'error' : ''}`} />
+        <input type={type} id={id} placeholder={placeholder} value={value} onChange={(event) => onchange(type === 'checkbox' ? event.target.checked : event.target.value)} required={require} className={`${error ? 'error' : ''}`} />
         {error && <div class="error-message">
             <i class="fas fa-exclamation-circle"></i>
             <span> {error}</span>
@@ -90,6 +90,8 @@ export function PasswordForm({value, onchange, placeholder, label, id, require=t
         </div>}
     </div>
 }
+
+
 
 export function MenuItem ({activeMenu, setActiveMenu, navigate, icon, label, page}){
     return <li class="menu-item">
