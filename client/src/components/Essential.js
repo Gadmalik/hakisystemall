@@ -32,16 +32,15 @@ export function SideBar({fonctionnalites, user}) {
 
     )
 }
-export function Header({title, searchFunction}) {
+export function Header({title, searchFunction, search="true"}) {
     const [userMenu, setUserMenu] = useState("hidden");
     const user = JSON.parse(localStorage.getItem("userinfo"));
     const link = process.env.REACT_APP_LINK;
     const navigate = useNavigate();
     const handleLogout = async () => {
         await localStorage.removeItem("userinfo");
-        navigate("/");
+        navigate("/login");
     }
-    // quand on clique n'importe où sauf sur le bouton declancheur (user-profile), le menu se ferme
 
     const testpush = async () => {
         console.log("testpush");
@@ -61,10 +60,10 @@ export function Header({title, searchFunction}) {
     return (
         <header class="header">
             <h2 id="page-title">{title}</h2>
-            <div class="search-box">
+            {search == "true" && <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" placeholder="Rechercher un dossier..." onChange={(e) => searchFunction(e.target.value)} />
-            </div>
+                <input type="text" placeholder="Rechercher" onChange={(e) => searchFunction(e.target.value)} />
+            </div>}
             <div class="user-profile">
                 <i class="fa-regular fa-bell fa-lg"></i>
                 <div class="user-img" onClick={() => setUserMenu("active")}>{user.nom.charAt(0)}{user.prenom.charAt(0)}</div>

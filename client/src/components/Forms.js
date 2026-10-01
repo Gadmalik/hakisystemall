@@ -53,7 +53,7 @@ export function FormUser({data, hideModal}){
         setLoaderVisible(true);
         try {
             const response = await fetch(`${link}/user/${userinfo.organisationid}`, {
-                method: "PUT",
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -68,22 +68,22 @@ export function FormUser({data, hideModal}){
                 }),
             });
 
-            const data = await response.json();
-            console.log(data);
+            const dataresponse = await response.json();
 
-            if (data.status === "success") {
-                alert(data.message);
+            if (dataresponse.status === "success") {
+                alert(dataresponse.message);
+                data?.onSubmit();
                 hideModal();
             } else {
-                const serverErrors = { message: data.message };
+                const serverErrors = { message: dataresponse.message };
 
-                if (data.code === 'username_used') {
+                if (dataresponse.code === 'username_used') {
                     serverErrors.nom_utilisateur = "Le nom d'utilisateur est déjà utilisé";
                     setUser(prev => ({ ...prev, nom_utilisateur: "" }));
-                } else if (data.code === 'email_used') {
+                } else if (dataresponse.code === 'email_used') {
                     serverErrors.email = "L'email est déjà utilisé";
                     setUser(prev => ({ ...prev, email: "" }));
-                } else if (data.code === 'phone_used') {
+                } else if (dataresponse.code === 'phone_used') {
                     serverErrors.telephone = "Le numéro de téléphone est déjà utilisé";
                     setUser(prev => ({ ...prev, telephone: "" }));
                 }
@@ -739,13 +739,13 @@ export function FormCategorieutilisateurOrg({data, hideModal}){
                 "Content-Type":"application/json",
             },
             body:JSON.stringify(categorieutilisateurorg),
-        }).then((res) => res.json()).then((data) => {
-            console.log(data);
+        }).then((res) => res.json()).then((dataresponse) => {
             
             setVisibleLoader(false);
-            if(data.status =="success"){
+            if(dataresponse.status =="success"){
                 alert("Categorie d'utilisateur d'organisation ajoutée avec succès !");
                 hideModal();
+                data?.onSubmit();
                 setActivePart(1);
                 setCategorieutilisateurorg({
                     libelle:"",
@@ -753,9 +753,9 @@ export function FormCategorieutilisateurOrg({data, hideModal}){
                     organisationid:user.organisationid,
                     fonctionnalites:[]
                 });
-                setError("")
+                setError("");
             }else{
-                setError(data.message);
+                setError(dataresponse.message);
             }
         }).catch((error) => {
             setError("Une erreur s'est produite ! ");

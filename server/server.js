@@ -291,7 +291,8 @@ app.post("/notification/send", async (req, res) => {
 
 app.get("/getincident", async (req, res) => {
     try{
-        const datas = await getDossier({userid: req.query.userid});
+        const { limit } = req.query;
+        const datas = await getDossier({userid: req.query.userid, limit});
         res.json({...datas});
     }catch(error){
         console.log(error);

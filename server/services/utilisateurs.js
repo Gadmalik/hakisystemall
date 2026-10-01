@@ -75,6 +75,7 @@ export async function getUserByCode(data){
         return {message:"Code ou email incorrect !", status:"error", code:"code_invalid", success:false};
     }
     try{
+        console.log(data)
         const result = await pool.query("SELECT * FROM utilisateurs WHERE code = $1 AND email = $2", [data.code, data.email]);
         if(result.rows.length === 0){
             return {message:"Code incorrect !", status:"error", code:"code_invalid", success:false};
@@ -96,6 +97,7 @@ export async function SetMdpUtilisateur(data){
         const setMdp = await pool.query("UPDATE utilisateurs SET mdp = $1, code = $2 WHERE userid=$3 RETURNING *", [hashmdp, null, data.userid]);
         if(setMdp.rowCount > 0){
             if(setMdp.rows[0].type === "second"){
+                await pool.query("UPDATE utilisateurs SET etat ='actif' WHERE userid=$1", [data.userid]);
                 return {message:"Mot de passe mis à jour avec succès !", status:"success", code:"success", success:true, data: setMdp.rows[0]};
             }
             const categorieutilisateur = await getCategorieUtilisateurById(verif_user.rows[0].categorieutilisateurid);
@@ -132,6 +134,10 @@ export async function GetUtilisateur(req, res){
         if(result.rows.length === 0){
             return res.status(404).json({message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false});
         }
+        if(result.rows[0]?.type == "second"){
+            const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
+            return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});
+        }
         return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});
     } catch (error) {
         console.log(error);
@@ -161,7 +167,7 @@ export async function getCategorieUtilisateurById(categorieutilisateurid){
 
 export async function login(data){
     try{
-        const user = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE (util.phone = $1 OR util.email = $1 OR util.username = $1)", [data.identifiant]);
+        const user = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, util.config AS config FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE (util.phone = $1 OR util.email = $1 OR util.username = $1)", [data.identifiant]);
         if(user.rows.length === 0){
             return {message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false};
         }
@@ -173,6 +179,11 @@ export async function login(data){
             return {message:"Votre compte est inactif !", status:"error", code:"inactif", success:false};
         }else if(user.rows[0].etat === "en attente"){
             return {message:"Votre compte est en attente de validation !", status:"en_attente", code:"en_attente", success:true, data: user.rows[0]};
+        }
+
+        if(user.rows[0].type == "second"){
+            const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [user.rows[0]?.userid]);
+            return {data: result.rows[0], status:"success", code:"success", success:true};
         }
         return {data: user.rows[0], status:"success", code:"success", success:true};
     }catch(error){

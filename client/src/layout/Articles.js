@@ -36,6 +36,7 @@ export function Articles() {
     return <>
         <Header title={"Articles"} />
         {loaderVisible && <Loader />}
+        
         <div className="main-container">
             <div class="cards-container">
                 {filteredArticles.map((article) => (

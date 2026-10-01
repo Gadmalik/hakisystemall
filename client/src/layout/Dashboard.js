@@ -10,17 +10,33 @@ export function Dashboard() {
     const [utilisateur, setUtilisateur] = useState([]);
     const [dossierLibre, setDossierLibre] = useState([]);
     const [visibleLoader, setVisibleLoader] = useState(false);
+    const [filteredDossierLibre, setFilteredDossierLibre] = useState([]);
     const user = JSON.parse(localStorage.getItem("userinfo"));
+
+    
+     const suivreDossier = async (id) => {
+        await fetch(`${link}/suivredossier`, {
+            headers:{
+                "Content-Type":"application/json",
+            },
+            method:"post",
+            body:JSON.stringify({userid: user.userid, dossierid: id})
+        }).then((response) => response.json()).then((resultat) =>{
+            if(resultat.status == "success"){
+                alert("Dossier suivi avec succès");
+                loadDossiers();
+            }
+            else{
+                alert("Erreur lors du suivi du dossier");
+            }
+        })
+    }
+
     const loadDossiers = async () => {
         setVisibleLoader(true);
         try{
-            await fetch(`${link}/getincident?userid=${user.userid}`).then((response) => response.json()).then((data) => {
-                setIncident(data.data);
-                setDossiers(data.data.filter((dossier) => dossier.statusinc == "cloturer"));
-                setDossierEncours(data.data.filter((dossier) => dossier.statusinc == "en cours"));
-            });
-            await fetch(`${link}/getincident`).then((response) => response.json()).then((data) => {
-                setDossierLibre(data.data);
+            await fetch(`${link}/getincident?limit=4`).then((response) => response.json()).then((data) => {
+                setFilteredDossierLibre(data.data);
             });
         }catch(error){
             console.log(error);
@@ -86,101 +102,27 @@ export function Dashboard() {
                 </div>
             </section>
 
-            <section class="content-grid">
-                <div class="chart-container">
-                    <h3>Statistiques des Incidents</h3>
-                    {/* <canvas id="incidentChart" style={{maxHeight: "180px"}}></canvas> */}
-                </div>
-                <div class="recent-activity">
-                    <h3>Derniers Juristes</h3>
-                    <ul class="activity-list">
-                        <li class="activity-item">
-                            <div class="avatar" style={{ color: "white", display: "flex", alignItems: "center", justifyContent: "center"}}>M</div>
-                            <div>
-                                <strong>Me. Claudine</strong><br />
-                                <small class="text-muted">Droit familial</small>
-                            </div>
-                        </li>
-                        <li class="activity-item">
-                            <div class="avatar" style={{color: "white", display: "flex", alignItems: "center", justifyContent: "center"}}>J</div>
-                            <div>
-                                <strong>Me. Tabarrow</strong><br />                                
-                                <small class="text-muted">Droit pénal</small>
-                            </div>
-                        </li>
-                        <li class="activity-item">
-                            <div class="avatar" style={{color: "white", display: "flex", alignItems: "center", justifyContent: "center"}}>S</div>
-                            <div>
-                                <strong>Me. Gad</strong><br />
-                                <small class="text-muted">Droit civil</small>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </section>
-
-            <h3 class="section-title">Composants : Dossiers & Articles</h3>
-            <div class="cards-container">
-                <div class="signalement-card">
-                    <div class="sig-header">
-                        <strong>#DOS-2025-001</strong>
-                        <span class="badge bg-danger">Inquiétude : Élevée</span>
-                    </div>
-                    <div class="sig-body">
-                        <h4 class="sig-title">Violences Conjugales</h4>
-                        <div class="sig-info"><i class="fa-solid fa-location-dot"></i> Quartier Himbi, Goma</div>
-                        <div class="sig-info"><i class="fa-regular fa-calendar"></i> 06 Fév 2026</div>
-                        <p class="sig-desc">Victime signale des menaces répétées...</p>
-                    </div>
-                    <div class="sig-footer">
-                        <small>Status: <span class="text-warning">En attente</span></small>
-                        <button class="btn-action">Voir</button>
-                    </div>
-                </div>
-
-                <div class="article-card">
-                    <div class="article-img">
-                        <i class="fa-solid fa-image fa-2x"></i>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-title">Comment porter plainte ?</div>
-                        <p class="article-desc">Guide pratique pour les victimes...</p>
-                        <div class="article-meta">
-                            <span><i class="fa-solid fa-eye"></i> 1,203 vues</span>
-                            <span><i class="fa-solid fa-paperclip"></i> PDF</span>
+            <h3 class="section-title">Dossiers récent</h3>
+            <div class={`cards-dossiers-container`}>
+                {
+                    filteredDossierLibre.map((dossier) => (
+                    <div class="signalement-card">
+                        <div class="sig-header">
+                            <strong>#DOS-{new Date(dossier.date_create).getFullYear()}-{dossier.id_incident}</strong>
+                            <span class={`badge bg-${dossier.niveau == "critique" || dossier.niveau =="eleve" ? "danger" : "warning"}`}>Inquiétude : {dossier.niveau}</span>
+                        </div>
+                        <div class="sig-body">
+                            <h4 class="sig-title">{dossier.type_incident}</h4>
+                            <div class="sig-info"><i class="fa-solid fa-location-dot"></i> {dossier.lieu}</div>
+                            <div class="sig-info"><i class="fa-regular fa-calendar"></i> {(dossier.date_incident)}</div>
+                            <p class="sig-desc">{dossier.description}</p>
+                        </div>
+                        <div class="sig-footer">
+                            <small>Status: <span class={`text-${dossier.statusinc == 'en cours' ? 'warning' : dossier.statusinc == 'resolut' ? 'success' : 'danger'}`}>{dossier.statusinc && dossier.userid == user.id ? dossier.statusinc : 'libre'}</span></small>
+                            <button class="btn-action" onClick={() => suivreDossier(dossier.id_incident)}><i className="fas fa-plus"></i> Suivre</button>
                         </div>
                     </div>
-                </div>
-
-                <div class="signalement-card">
-                    <div class="sig-header">
-                        <strong>#DOS-2025-042</strong>
-                        <span class="badge bg-warning">Inquiétude : Moyenne</span>
-                    </div>
-                    <div class="sig-body">
-                        <h4 class="sig-title">Conflit Foncier</h4>
-                        <div class="sig-info"><i class="fa-solid fa-location-dot"></i> Masisi, Centre</div>
-                        <div class="sig-info"><i class="fa-regular fa-calendar"></i> 05 Fév 2026</div>
-                    </div>
-                    <div class="sig-footer">
-                        <small>Status: <span class="text-success">Attribué</span></small>
-                        <button class="btn-action">Suivre</button>
-                    </div>
-                </div>
-
-                <div class="article-card">
-                    <div class="article-img" style={{background:"#e8eaf6"}}>
-                        <i class="fa-solid fa-file-pdf fa-2x" ></i>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-title">Droits des femmes</div>
-                        <p class="article-desc">Comprendre vos droits juridiques...</p>
-                        <div class="article-meta">
-                            <span><i class="fa-solid fa-eye"></i> 845 vues</span>
-                            <span><i class="fa-solid fa-paperclip"></i> PDF</span>
-                        </div>
-                    </div>
-                </div>
+                ))}
             </div>
         </div>
 

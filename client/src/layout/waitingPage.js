@@ -9,6 +9,7 @@ export function WaitingPage() {
 
     const verifEtatUtilisateur = async () => {
         try {
+            console.log("teste")
             const response = await fetch(link+`/user/`+user.userid, {
                 method: "GET",
                 headers: {
@@ -29,7 +30,7 @@ export function WaitingPage() {
     }
     return (
         <>
-            <Header title="Accueil" />
+            <Header title="Accueil" search="false" />
             <main class="pending-container">
 
                 <div class="pending-card">

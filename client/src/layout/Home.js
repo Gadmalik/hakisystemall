@@ -110,6 +110,7 @@ export function Home() {
           setVisibleModal(true);
         }
         loadFonctionnalites();
+        console.log(user);
       }
     }
   }, [user]);

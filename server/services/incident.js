@@ -19,7 +19,11 @@ export async function AddSignalement(data){
 
 export async function getIncidentByUser(data){
     try{
-        const reponse = await pool.query("SELECT *, att.status as statusinc FROM incident inc JOIN categorie_incident cat ON inc.categorieid = cat.categorie_id LEFT JOIN attribuerdossier att ON inc.id_incident = att.dossierid LEFT JOIN utilisateurs usr ON att.userid=usr.userid WHERE inc.userid=$1", [data.userid]);
+        let additionnal = "";
+        if(data.limit && data.limit > 0){
+            additionnal = ` limit ${data.limit} `
+        }
+        const reponse = await pool.query("SELECT *, att.status as statusinc FROM incident inc JOIN categorie_incident cat ON inc.categorieid = cat.categorie_id LEFT JOIN attribuerdossier att ON inc.id_incident = att.dossierid LEFT JOIN utilisateurs usr ON att.userid=usr.userid WHERE inc.userid=$1"+additionnal, [data.userid]);
         return {data: reponse.rows, status:"success", code:"success"};
     }catch(error){
         console.log(error);

@@ -12,13 +12,17 @@ export async function suivreDossier({dossierid, userid}){
     
 }
 
-export async function getDossier({userid}){
+export async function getDossier({userid, limit}){
     try{
         if(userid){
             const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id JOIN attribuerdossier ad ON inc.id_incident=ad.dossierid WHERE ad.userid=$1 AND (ad.status != 'libre' OR ad.status != 'abandonner')", [userid]);
             return {_inc:"success", code:"success", data: datas.rows};
         }else{
-            const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id LEFT JOIN attribuerdossier ad ON inc.id_incident=ad.dossierid WHERE ad.attribuerid IS NULL OR ad.status='libre' OR ad.status='abandonner'");
+            let  additionnal = "";
+            if(limit){
+                additionnal = `limit ${limit}`;
+            }
+            const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id LEFT JOIN attribuerdossier ad ON inc.id_incident=ad.dossierid WHERE ad.attribuerid IS NULL OR ad.status='libre' OR ad.status='abandonner' "+additionnal);
             return {_inc:"success", code:"success", data: datas.rows};
         }
     }catch(error){

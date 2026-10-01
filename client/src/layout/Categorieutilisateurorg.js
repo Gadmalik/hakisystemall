@@ -56,6 +56,10 @@ export function CategorieUtilisateursOrg() {
         const search = e.target.value;
         setFilteredCategorieUtilisateur(categorieUtilisateur.filter((categorie) => `${categorie.libelle} ${categorie.description}`.toLowerCase().includes(search.toLowerCase())));
     }
+
+    const onSubmit = () => {
+        loadCategorieUtilisateurs();
+    }
     const executeAction = async (action) => {
         // try {
         //     const formData = new FormData();
@@ -95,7 +99,7 @@ export function CategorieUtilisateursOrg() {
             <Header title={"Categories d'utilisateurs"} searchFunction={searchCategorieUtilisateur} />
             {loaderVisible && <Loader />}
             <Modal 
-                data={{form:"formcategorieutilisateurorg", fonctionnalites}}
+                data={{form:"formcategorieutilisateurorg", fonctionnalites, onSubmit}}
                 title={"Ajouter une catégorie d'utilisateur"}
                 setVisible={setVisibleModal}
                 visible={visibleModal}

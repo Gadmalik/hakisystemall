@@ -102,7 +102,8 @@ export async function assignerdomaine(req, res){
                 await pool.query("INSERT INTO assignerdomaine(organisationid, categorie_id, userid, status) VALUES($1, $2, $3, $4)", [organisationid, domaineid, userid, "actif"]);
             }
         })
-        const user = await pool.query("UPDATE utilisateurs SET config=true WHERE userid=$1 RETURNING *", [userid]);
+        await pool.query("UPDATE utilisateurs SET config=true WHERE userid=$1", [userid]);
+        const user = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, util.config AS config FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid=$1", [userid]);
         res.json({status: "success", success: true, message: "Domaine assigné avec succès !", data: user.rows[0]});
     }catch(error){
         res.json({status: "error", success: false, message: error.message});

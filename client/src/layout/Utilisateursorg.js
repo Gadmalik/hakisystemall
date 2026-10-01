@@ -77,6 +77,10 @@ export function UtilisateursOrg() {
             console.log(error);
         }
     }
+
+    const onSubmit = async () => {
+        fetchUsers();
+    }
     useEffect(() => {
         fetchUsers();
         loadCategorieUtilisateurs();
@@ -95,7 +99,7 @@ export function UtilisateursOrg() {
         <>
             <Header title={"Utilisateurs"} searchFunction={searchUser} />
             <Modal 
-                data={{form:"formuser", categories: categorieUtilisateur }}
+                data={{form:"formuser", categories: categorieUtilisateur, onSubmit }}
                 title={"Ajouter un utilisateur"}
                 setVisible={setVisibleModal}
                 visible={visibleModal}
