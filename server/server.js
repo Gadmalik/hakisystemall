@@ -8,17 +8,18 @@ import { fileURLToPath } from 'url';
 import { AddUtilisateur, AddUtilisateurOrg, getUserByCode, GetUtilisateur, login, SetMdpUtilisateur } from "./services/utilisateurs.js";
 import { ConfirmMail, ConfirmOrgMail } from "./services/mailsModel.js";
 import { sendMail } from "./services/mail.js";
-import { AddSignalement, getIncidentByUser } from "./services/incident.js";
+import { AddSignalement, getIncidentById, getIncidentByUser, getIncidentOrienteByOrganisationId, getIncidentOrienteByUserId, getIncidentSuivieByUserId } from "./services/incident.js";
 import { SendNotification, SubscribeUser } from "./services/notification.js";
 import { actionOrganisations, addOrganisation, assignerdomaine, getOrganisation, getOrganisations, getTypeOrganisation } from "./services/organisation.js";
-import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, addCatUtilisateur, getcategorieutilisateurOrg, getCatUtilisateur, getFonctionnalitesByCategorieutilisateurs, getUtilisateursByOrganisationId } from "./services/categorieutilisateurs.js";
-import { addFonctionnalites, getFonctionnalites } from "./services/fonctionnalites.js";
+import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, addCatUtilisateur, getcategorieutilisateurOrg, getCatUtilisateur, getDefaultCategorieUtilisateur, getFonctionnalitesByCategorieutilisateurs, getUtilisateursByOrganisationId } from "./services/categorieutilisateurs.js";
+import { addFonctionnalites, getFonctionnalites, updateFonctionnalites } from "./services/fonctionnalites.js";
 
 // recréer __filename et __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const upload = multer({dest:"uploads"});
 const uploadlogo = multer({dest:"uploads/logo"});
+const uploadannexes = multer({dest:"uploads/annexes"});
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -56,20 +57,19 @@ app.get("/login", async (req, res) => {
 })
 app.post("/user", async (req, res) => {
     try{
-        const {nom, prenom, phone, email, username, categorie, adresse =""} = req.body;
-        console.log(req.body)
+        const {nom, prenom, phone, email, username, categorie, mdp, adresse =""} = req.body;
         const malik = "";
         const date = new Date();
         const date_create = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
         const code = Math.floor(100000 + Math.random() * 900000);
         const textmail = ConfirmMail(`${nom} ${prenom}`, code);
-        const result = await AddUtilisateur({nom, prenom, phone, email, username, categorie, adresse, date_create,code});
-        if(result.status){
+        const result = await AddUtilisateur({nom, prenom, phone, email, username, categorieutilisateurid:categorie , mdp, adresse, date_create,code});
+        console.log(result);
+        if(result.success && Object.keys(result.data).length < 1){
             const sendmail = await sendMail({to:email, subject:"Confirmation de votre compte", text:textmail});
             if(!sendmail.success){
                 res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: sendmail.error});
             }
-
         }
         res.json(result);
     }catch(error){
@@ -96,7 +96,6 @@ app.post("/user/:organisationid", async (req, res) => {
                 if(!sendmail.success){
                     res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: sendmail.error});
                 }
-
             }
             res.json(result);
         }else{
@@ -136,7 +135,15 @@ app.get("/user/:id", async (req, res) => GetUtilisateur(req, res));
 
 app.get("/categorieutilisateur", async (req, res) => getCatUtilisateur(req, res));
 
+app.get("/getdefaultcategorieutilisateur", async (req, res) => getDefaultCategorieUtilisateur(req, res));
+
 app.post("/categorieutilisateur", async (req, res) => addCatUtilisateur(req, res));
+
+app.get("/getincidentorientebyorganisationid/:organisationid/:userid", async (req, res) => getIncidentOrienteByOrganisationId(req, res));
+
+app.get("/getincidentorientebyuserid/:userid", async (req, res) => getIncidentOrienteByUserId(req, res));
+
+app.get("/getincidentsuiviebyuserid/:userid", async (req, res) => getIncidentSuivieByUserId(req, res));
 
 app.get("/categorie_incident", async (req, res) => {
     try{
@@ -244,12 +251,13 @@ app.get("/getcategorieutilisateurorg/:organisationid", async (req, res) => {
 app.post("/assignerdomaine", async (req, res) => assignerdomaine(req, res));
 
 
-app.post("/incident", async (req, res) => {
+app.post("/incident", uploadannexes.array("annexe", 3), async (req, res) => {
     try{
-        const {type,date,lieu,description,userid} = req.body;
         const date_create = new Date().toISOString().split('T')[0];
-        const reponse = await AddSignalement({type,date,lieu,description,date_create,userid});
-        res.json({...reponse});
+        const {categorieid,lieu,description,date,userid,contact,genre,trancheage, iscontact, annexe} = req.body;
+        const annexes = req.files.map(file => ({ path: file.path, size: file.size, mimetype: file.mimetype}));
+        const reponse = await AddSignalement({categorieid,date,lieu,description,date_create,userid, contact,genre,trancheage, iscontact, annexes});
+        res.json(reponse);
     }catch(error){
         console.log(error);
         res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
@@ -266,6 +274,8 @@ app.get("/incident/:userid", async (req, res) => {
         res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
     }
 })
+
+app.get("/signalement/:signalementid/:cond", async (req, res) => getIncidentById(req, res));
 
 app.post("/notification/subscribe", async (req, res) => {
     try{
@@ -301,8 +311,8 @@ app.get("/getincident", async (req, res) => {
 })
 
 app.post("/suivredossier", async (req, res) => {
-    const {userid, dossierid} = req.body;
-    const reponse = await suivreDossier({userid, dossierid});
+    const {userid, dossierid, organisationid, commentiare, type, status, orientationid} = req.body;
+    const reponse = await suivreDossier({userid, dossierid, organisationid, commentiare, type, status, orientationid});
     res.json({...reponse});
 });
 
@@ -358,6 +368,7 @@ app.post("/updateprofile", async (req, res) => {
 
 app.post("/fonctionnalite", (req, res, next) => addFonctionnalites(req, res, next))
 app.get("/fonctionnalites", (req, res, next) => getFonctionnalites(req, res, next))
+app.put("/fonctionnalite", (req, res, next) => updateFonctionnalites(req, res, next))
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

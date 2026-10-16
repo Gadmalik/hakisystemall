@@ -1,9 +1,17 @@
 import pool from "./db.js";
 
-export async function suivreDossier({dossierid, userid}){
+export async function suivreDossier({dossierid, userid, commentaire, type, status, organisationid, orientationid}){
     const date = new Date();
     try{
-        const reponse = await pool.query("INSERT INTO attribuerdossier(userid, date, dossierid, status) VALUES ($1,$2,$3,$4)", [userid, date, dossierid, "en cours"]);
+        const verif = await verifStatus(dossierid, type || "prise")
+        console.log(verif);
+        if(verif.status === "error"){
+            return verif;
+        }
+        if(orientationid){
+            const updateOrientation = await pool.query("UPDATE attribuerdossier SET status='accepté', date=$1 WHERE attribuerid=$2", [date, orientationid])
+        }
+        const reponse = await pool.query("INSERT INTO attribuerdossier(userid, date, dossierid, commentaire, type, organisationid, status) VALUES ($1, $2, $3, $4, $5, $6, $7)", [userid, date, dossierid, commentaire || null, type || "prise", organisationid || null, status || "en cours"]);
         return {status:"success", code:"success", data: reponse.rows[0]};
     }catch(error){
         console.log(error);
@@ -12,17 +20,31 @@ export async function suivreDossier({dossierid, userid}){
     
 }
 
+export async function verifStatus(dossierid, type){
+    try{
+        const datas = await pool.query("SELECT * FROM attribuerdossier WHERE dossierid=$1 AND status != 'refusé' AND status != 'abandonné' AND type=$2", [dossierid, type]);
+        if(datas.rowCount === 0){
+            return {status: "success", code:"success", data: datas.rows[0]};
+        }else{
+            return {status: "error", code:"error", message:`Dossier déjà ${datas.rows[0]?.type == "prise" ? "attribué" : "orienté"}`};
+        }
+    }catch(error){
+        console.log(error);
+        return {status: "error", code:"error", error:error}
+    }
+}
+
 export async function getDossier({userid, limit}){
     try{
         if(userid){
-            const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id JOIN attribuerdossier ad ON inc.id_incident=ad.dossierid WHERE ad.userid=$1 AND (ad.status != 'libre' OR ad.status != 'abandonner')", [userid]);
+            const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id JOIN attribuerdossier ad ON inc.id_incident=ad.dossierid WHERE ad.userid=$1 AND (ad.status != 'refusé' OR ad.status != 'abandonné')", [userid]);
             return {_inc:"success", code:"success", data: datas.rows};
         }else{
             let  additionnal = "";
             if(limit){
                 additionnal = `limit ${limit}`;
             }
-            const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id LEFT JOIN attribuerdossier ad ON inc.id_incident=ad.dossierid WHERE ad.attribuerid IS NULL OR ad.status='libre' OR ad.status='abandonner' "+additionnal);
+            const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id LEFT JOIN attribuerdossier ad ON (inc.id_incident=ad.dossierid AND (ad.status='en cours' OR ad.status= 'en attente' OR ad.status='résolu')) WHERE ad.status IS NULL "+additionnal);
             return {_inc:"success", code:"success", data: datas.rows};
         }
     }catch(error){
@@ -98,4 +120,5 @@ export async function updateProfile({username, noms, adresse, phone, email, pass
         return {status: "error", code:"error", error:error}
     }
 }
+
 

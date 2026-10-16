@@ -6,12 +6,24 @@ export async function addCategorieUtilisateurOrg(data){
         const result = await pool.query(query, [data.libelle, data.description, data.organisationid, 'actif']);
         const categorieutilisateurorgid = result.rows[0].categorieutilisateurorgid;
         if(data.fonctionnalites.length > 0){
+            // desactiver toute les ancienne
             data.fonctionnalites.forEach(async fonctionnaliteid => {
                 const query = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, compte, status) VALUES ($1, $2, $3, $4)";
                 await pool.query(query, [categorieutilisateurorgid, fonctionnaliteid, 'second', 'actif']);
             });
         }
         return {status: "success", success: true, message: "Categorie utilisateur ajoutée avec succès !"};
+    } catch (error) {
+        console.log(error);
+        return {status: "error", success: false, message: error.message};
+    }
+}
+
+export async function getDefaultCategorieUtilisateur(req, res){
+    try {
+        const query = "SELECT * FROM categorieutilisateur WHERE isdefault = true";
+        const result = await pool.query(query);
+        res.json({status: "success", success: true, data: result.rows[0]});
     } catch (error) {
         console.log(error);
         return {status: "error", success: false, message: error.message};
@@ -64,6 +76,7 @@ export async function addCatUtilisateur(req, res ){
         const result = await pool.query(query, [designation, description]);
         const categorieutilisateurid = result.rows[0].categorieutilisateurid;
         if(fonctionnalites.length > 0){
+            // desactiver toute les ancienne
             fonctionnalites.forEach(async fonctionnalite => {
                 const query = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, status) VALUES ($1, $2, 'actif')";
                 await pool.query(query, [categorieutilisateurid, fonctionnalite]);
@@ -109,5 +122,45 @@ export async function getFonctionnalitesByCategorieutilisateurs(req, res){
     } catch (error) {
         console.log(error);
         res.json({status: "error", success: false, message: error.message});
+    }
+}
+
+export async function updateCatUtilisateur(req, res){
+    try {
+        const {categorieutilisateurid, designation, description, fonctionnalites} = req.body;
+        const query = "UPDATE categorieutilisateur SET designation = $1, description = $2 WHERE categorieutilisateurid = $3 RETURNING *";
+        const result = await pool.query(query, [designation, description, categorieutilisateurid]);
+        if(fonctionnalites.length > 0){
+            // desactiver toute les ancienne
+            await pool.query("UPDATE assignerfonctionnalites SET status = 'inactif' WHERE categorieutilisateurid = $1", [categorieutilisateurid]);
+            fonctionnalites.forEach(async fonctionnalite => {
+                const query = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, status) VALUES ($1, $2, 'actif')";
+                await pool.query(query, [categorieutilisateurid, fonctionnalite]);
+            });
+        }
+        return res.json({status: "success", success: true, message: "Categorie utilisateur modifiée avec succès !", data: result.rows[0]});
+    } catch (error) {
+        console.log(error);
+        return res.json({status: "error", success: false, message: error.message});
+    }
+}
+
+export async function updateCatUtilisateurOrg(req, res){
+    try {
+        const {categorieutilisateurorgid, libelle, description, fonctionnalites} = req.body;
+        const query = "UPDATE categorieutilisateurorg SET libelle = $1, description = $2 WHERE categorieutilisateurorgid = $3 RETURNING *";
+        const result = await pool.query(query, [libelle, description, categorieutilisateurorgid]);
+        if(fonctionnalites.length > 0){
+            // desactiver toute les ancienne
+            await pool.query("UPDATE assignerfonctionnalites SET status = 'inactif' WHERE categorieutilisateurid = $1", [categorieutilisateurorgid]);
+            fonctionnalites.forEach(async fonctionnalite => {
+                const query = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, compte, status) VALUES ($1, $2, $3, $4)";
+                await pool.query(query, [categorieutilisateurorgid, fonctionnalite, 'second', 'actif']);
+            });
+        }
+        return res.json({status: "success", success: true, message: "Categorie utilisateur modifiée avec succès !", data: result.rows[0]});
+    } catch (error) {
+        console.log(error);
+        return res.json({status: "error", success: false, message: error.message});
     }
 }

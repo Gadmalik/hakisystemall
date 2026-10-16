@@ -1,10 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { Badge, Logo, MenuItem } from "./minicomp"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
-export function SideBar({}){
+export function SideBar({ fonctionnalites}){
     const [activeMenu, setActiveMenu] = useState(window.location.pathname);
+    const [fonctionnalitesMenu, setFonctionnalitesMenu] = useState([]);
     const navigate = useNavigate();
+    
+    useEffect(() => {
+        console.log(fonctionnalites);
+        if(fonctionnalites?.length > 0){
+            setFonctionnalitesMenu(fonctionnalites);
+        }
+    }, [fonctionnalites]);
     return (
         <nav class="responsive-nav">
             <div class="nav-brand">
@@ -12,75 +20,24 @@ export function SideBar({}){
                 <span class="logo-text">HAK System</span>
             </div>
             <div class="nav-links">
-                <MenuItem
-                    icone="chart-pie"
-                    title="Tableau de bord"
-                    link="/home/dashboard"
-                    active={activeMenu === "/home/dashboard"}
-                    onClick={() => {setActiveMenu("/home/dashboard"); navigate("/home/dashboard")}}
-                />
-                <MenuItem
-                    icone="inbox"
-                    title="Signalements"
-                    link="/home/signalement"
-                    active={activeMenu === "/home/signalement"}
-                    onClick={() => {setActiveMenu("/home/signalement"); navigate("/home/signalement")}}
-                />
-                <MenuItem
-                    icone="clock"
-                    title="À traiter"
-                    link="/home/atraitement"
-                    active={activeMenu === "/home/atraitement"}
-                    onClick={() => {setActiveMenu("/home/atraitement"); navigate("/home/atraitement")}}
-                />
-                <MenuItem
-                    icone="share-nodes"
-                    title="Cas orientés"
-                    link="/home/casorientes"
-                    active={activeMenu === "/home/casorientes"}
-                    onClick={() => {setActiveMenu("/home/casorientes"); navigate("/home/casorientes")}}
-                />
-                <MenuItem
-                    icone="compass"
-                    title="Orientations"
-                    link="/home/orientation"
-                    active={activeMenu === "/home/orientation"}
-                    onClick={() => {setActiveMenu("/home/orientation"); navigate("/home/orientation")}}
-                />
-                <MenuItem
-                    icone="history"
-                    title="Historique"
-                    link="/home/historique"
-                    active={activeMenu === "/home/historique"}
-                    onClick={() => {setActiveMenu("/home/historique"); navigate("/home/historique")}}
-                />
-                <MenuItem
-                    icone="chart-line"
-                    title="Statistiques"
-                    link="/home/statistiques"
-                    active={activeMenu === "/home/statistiques"}
-                    onClick={() => {setActiveMenu("/home/statistiques"); navigate("/home/statistiques")}}
-                />
-                <MenuItem
-                    icone="newspaper"
-                    title="Articles"
-                    link="/home/articles"
-                    active={activeMenu === "/home/articles"}
-                    onClick={() => {setActiveMenu("/home/articles"); navigate("/home/articles")}}
-                />
-                <MenuItem
-                    icone="users"
-                    title="Utilisateurs"
-                    link="/home/utilisateurs"
-                    active={activeMenu === "/home/utilisateurs"}
-                    onClick={() => {setActiveMenu("/home/utilisateurs"); navigate("/home/utilisateurs")}}
-                />
+                {
+                    fonctionnalites?.map((fonctionnalite) => <MenuItem
+                        icone={fonctionnalite.icone}
+                        title={fonctionnalite.designation}
+                        link={fonctionnalite.route}
+                        active={activeMenu === fonctionnalite.route}
+                        onClick={() => {setActiveMenu(fonctionnalite.route); navigate(`/home/${fonctionnalite.route}`)}}
+                    />)
+                }
+                
             </div>
         </nav>
     )
 }
 
 export function Header({title, retour = false}){
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
+
     return(
         <header class="header">
             {retour ? <i className="fa-solid fa-arrow-left logo" style={{marginRight: "10px", fontSize: "21px", cursor: "pointer"}}></i> : <Logo size={30} />}
@@ -89,8 +46,8 @@ export function Header({title, retour = false}){
                 <input type="search" class="form-control" placeholder="Rechercher un code ou un type..." style={{width: "300px", maxWidth: "75%", borderRadius: "var(--radius-pill)", padding: "10px 16px"}} />
                 <div style={{display: "flex", alignItems: "center", gap: "12px", fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "right"}}>
                     <div className="textprofile">
-                        <strong style={{color: "var(--text-main)", fontSize: "0.9rem", display: "block"}}>TABARROW RUBAN</strong>
-                        Gestionnaire des cas
+                        <strong style={{color: "var(--text-main)", fontSize: "0.9rem", display: "block"}}>{user?.nom.toUpperCase()} {user?.prenom}</strong>
+                        {user?.role}({user?.designation})
                     </div>
                     <div style={{width: "40px", height: "40px", background: "#e5e7eb", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#9ca3af", fontSize: "1.2rem", flexShrink: 0}}>
                         <i class="fa-regular fa-user"></i>

@@ -14,7 +14,7 @@ export async function addOrganisation(data){
         return {status: "failed", success: false, message: "Une organisation existe déjà avec ce numéro de téléphone !"};
     }
     try{
-        const add = await pool.query("INSERT INTO organisation (designation, sigle, typeorganisationid, pays, province, ville, adresse_org, phone_org, email_org, site_web, reseaux_sociaux, logo_url, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *", [data.designation, data.sigle, data.typeorganisationid, data.pays, data.province, data.ville, data.adresse_org, data.phone_org, data.email_org, data.site_web, data.reseaux_sociaux, data.logo_url, data.userid]);
+        const add = await pool.query("INSERT INTO organisation (designation, sigle, typeorganisationid, pays, province, ville, adresse_org, phone_org, email_org, site_web, reseaux_sociaux, logo_url, userid, config) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true) RETURNING *", [data.designation, data.sigle, data.typeorganisationid, data.pays, data.province, data.ville, data.adresse_org, data.phone_org, data.email_org, data.site_web, data.reseaux_sociaux, data.logo_url, data.userid]);
         return {status: "success", success: true, message: "Organisation ajoutée avec succès !", data:add.rows[0]};
     }catch(error){
         console.error(error);
@@ -97,7 +97,7 @@ export async function assignerdomaine(req, res){
     try{
         const {organisationid, domaineintervention, userid} = req.body;
         domaineintervention.forEach(async (domaineid) => {
-            const verif = await verifDomaineAssigner({organisationid, domaineid});
+            const verif = await verifDomaineAssigner({organisationid, domaineid, userid});
             if(verif.success){
                 await pool.query("INSERT INTO assignerdomaine(organisationid, categorie_id, userid, status) VALUES($1, $2, $3, $4)", [organisationid, domaineid, userid, "actif"]);
             }
@@ -112,8 +112,8 @@ export async function assignerdomaine(req, res){
 
 export async function verifDomaineAssigner(data){
     try{
-        const {organisationid, domaineid} = data;
-        const verif = await pool.query("SELECT * FROM assignerdomaine WHERE organisationid = $1 AND categorie_id = $2", [organisationid, domaineid]);
+        const {organisationid, domaineid, userid} = data;
+        const verif = await pool.query("SELECT * FROM assignerdomaine WHERE (organisationid = $1 OR userid=$2 ) AND categorie_id = $3", [organisationid, userid, domaineid]);
         if(verif.rows.length > 0){
             return {status: "failed", success: false, message: "Domaine déjà assigné !"};
         }

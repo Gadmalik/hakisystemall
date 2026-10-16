@@ -44,13 +44,13 @@ export function Login() {
                 if(data.success){
                     if(data.data?.organisation){
                         if(data.data.organisationid){
-                            if(data.data.ogstatus =="en_attente"){
+                            if(data.data.ogstatus =="en attente"){
                                 await localStorage.setItem("userinfo", JSON.stringify(data.data));
-                                navigate("/welcome");
+                                navigate("/waiting");
                             }else if(data.data.ogstatus =="refuse" ){
 
                                 await localStorage.setItem("userinfo", JSON.stringify(data.data));
-                                // navigate("/home");
+                                navigate("/waiting");
                             }else if(data.data.ogstatus =="actif" ){
                                 await localStorage.setItem("userinfo", JSON.stringify(data.data));
                                 navigate("/home");
@@ -59,15 +59,15 @@ export function Login() {
                             }
                         }else{
                             await localStorage.setItem("userinfo", JSON.stringify(data.data));
-                            navigate("/organisation");
+                            navigate("/waiting");
                         }
                     }else{
                         if(data.status == "en_attente"){
                             await localStorage.setItem("userinfo", JSON.stringify(data.data));
-                            navigate("/welcome");
+                            navigate("/waiting");
                         }else if(data.status == "refuse"){
                             await localStorage.setItem("userinfo", JSON.stringify(data.data));
-                            navigate("/welcome");
+                            navigate("/waiting");
                         }else if(data.status == "success"){
                             await localStorage.setItem("userinfo", JSON.stringify(data.data));
                             navigate("/home");
@@ -134,7 +134,8 @@ export function Login() {
                     </p>
                     <Button label={"Se connecter"} type={"submit"} variant={"primary"} size="block" loader={loaderVisible} />
                     <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous n'avez pas de compte ? <a href="#">Inscrivez-vous</a></p>
-                    <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous êtes une organisation ou un professionnel ? <a href="#">Rejoignez-nous</a></p>
+                    <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous préférez signaler sans compte ? <a href="/signaler">Signaler</a></p>
+                    <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous aimeriez suivre votre signalement ? <a href="/suiviedossier">suivre vos signalements</a></p>
                     
                 </form>
             </div>

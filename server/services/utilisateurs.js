@@ -2,34 +2,40 @@ import pool from "../db.js";
 import bcrypt from "bcrypt";
 
 export async function AddUtilisateur(data){
-    let config = true;
-    if(!data.nom || !data.prenom || !data.phone || !data.email || !data.username || !data.categorie){
-        return {message:"informations de connexion insuffisant !"};
+    try{
+        let config = true;
+        if(!data.nom || !data.username || !data.categorieutilisateurid){
+            return {message:"informations de connexion insuffisant !"};
+        }
+        const verif_user = await VerifUsername(data);
+        if(!verif_user.success){
+            return verif_user;
+        }
+        const verif_email = await VerifEmail(data);
+        if(!verif_email.success){
+            return verif_email;
+        }
+        const verif_phone = await VerifPhone(data);
+        if(!verif_phone.success){
+            return verif_phone;
+        }
+        const verif_categorie = await getCategorieUtilisateurById(data.categorieutilisateurid);
+        console.log(verif_categorie);
+        if(!verif_categorie.success){
+            return verif_categorie;
+        }
+        let etat = "actif";
+        if(verif_categorie.data.confirm){
+            etat = "en attente";
+            config = false;
+        }
+        const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, mdp, code, etat, categorieutilisateurid, adresse,date_create, config) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.mdp ? await bcrypt.hash(data.mdp, 10) : null, data.code, etat, data.categorieutilisateurid, data.adresse, data.date_create, config]);
+        return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true, data:etat == "actif" ? user.rows[0] : {}};
+
+    }catch(err){
+        console.log(err);
+        return {message:"Une erreur s'est produite !", status:"error", code:"error", success:false};
     }
-    const verif_user = await VerifUsername(data);
-    if(!verif_user.success){
-        return verif_user;
-    }
-    const verif_email = await VerifEmail(data);
-    if(!verif_email.success){
-        return verif_email;
-    }
-    const verif_phone = await VerifPhone(data);
-    if(!verif_phone.success){
-        return verif_phone;
-    }
-    const verif_categorie = await getCategorieUtilisateurById(data.categorie);
-    console.log(verif_categorie);
-    if(!verif_categorie.success){
-        return verif_categorie;
-    }
-    let etat = "actif";
-    if(verif_categorie.data.confirm){
-        etat = "en attente";
-        config = false;
-    }
-    const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, code, etat, categorieutilisateurid, adresse,date_create, config) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.code, etat, data.categorie, data.adresse, data.date_create, config]);
-    return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true};
 }
 
 
@@ -130,12 +136,12 @@ export async function VerifPhone(data){
 export async function GetUtilisateur(req, res){
     const {id} = req.params;
     try {
-        const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
+        const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, cu.designation AS role FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
         if(result.rows.length === 0){
             return res.status(404).json({message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false});
         }
         if(result.rows[0]?.type == "second"){
-            const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
+            const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, cu.designation AS role FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
             return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});
         }
         return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});

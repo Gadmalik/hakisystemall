@@ -7,6 +7,16 @@ export function Input({placeholder, onChange, value, disable, required, type, bu
     </ div>
 }
 
+export function Select({ value, onChange, placeholder, type, label, id, require = true, error, options, icon }) {
+    return (
+        <select id={id} placeholder={placeholder} value={value} onChange={(event) => onChange(event.target.value)} required={require} className={`form-control`} >
+            <option value="">{placeholder}</option>
+            {options.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+        </select>)
+}
+
 export function TextArea({placeholder, onChange, value, disable, required}){
     return <textarea class="form-control" placeholder={placeholder} value={value} onChange={(event) => onChange(event.target.value)} disabled={disable} required={required}></textarea>
 }

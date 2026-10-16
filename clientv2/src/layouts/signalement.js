@@ -11,7 +11,7 @@ export function Signalement({}){
     const [filteredSignalements, setFilteredSignalements] = useState([]);
     const [activeTab, setActiveTab] = useState("encours");
     const link = process.env.REACT_APP_LINK;
-    const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
 
     const loadSignalements = async () => {
         setVisibleLoader(true);
@@ -62,7 +62,6 @@ export function Signalement({}){
                             <th>Type</th>
                             <th>Date</th>
                             <th>Priorité</th>
-                            <th>Statut</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -73,7 +72,6 @@ export function Signalement({}){
                             <td>{signalement.designation}</td>
                             <td>{new Date(signalement.date_incident).toLocaleDateString()}</td>
                             <td><span class={`badge badge-${signalement.niveau == "critique" || signalement.niveau == "elevé" ? "high" : "medium"}`}>{signalement.niveau}</span></td>
-                            <td><span class={`badge badge-${signalement.statusinc == "en cours" ? "analysis" : signalement.statusinc == "nouveau" ? "new" : "resolved"}`}>{signalement.statusinc}</span></td>
                             <td><a onClick={() => navigate(`${signalement.id_incident}`)} class="link-action">Ouvrir →</a></td>
                         </tr>
                         ))}

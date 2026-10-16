@@ -96,6 +96,10 @@ button {
   flex: 0.8
 }
 
+.flex-6 {
+  flex: 0.6
+}
+
 .hidden {
   display: none;
 }
@@ -113,6 +117,98 @@ button {
 /* =========================================
       2. COMPOSANTS DE BASE
       ========================================= */
+
+.stepper-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  font-family: system-ui, sans-serif;
+}
+
+.stepper {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 30px;
+}
+
+/* Ligne de fond */
+.stepper::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: 4px;
+  width: 100%;
+  background-color: #e0e0e0;
+  z-index: 1;
+}
+
+/* Ligne de progression dynamique */
+.stepper-progress {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: 4px;
+  background-color: var(--primary);
+  z-index: 1;
+  transition: width 0.3s ease;
+  width: 0%;
+  /* Ajusté via JS */
+}
+
+.step {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 3px solid #e0e0e0;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.step-label {
+  position: absolute;
+  top: 42px;
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* État actif */
+.step.active .step-number {
+  border-color: var(--primary);
+  color: var(--primary);
+  background-color: #ffffff;
+}
+
+.step.active .step-label {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+/* État complété */
+.step.completed .step-number {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: #ffffff;
+}
 
 .tracking-code {
   font-size: 1.5rem;
@@ -972,11 +1068,12 @@ input:checked+.slider:before {
       ========================================= */
 .table-responsive-wrapper {
   width: 100%;
-  overflow-x: auto;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: white;
+  max-height: 80vh;
 }
 
 .data-table {
@@ -1090,6 +1187,339 @@ input:checked+.slider:before {
   color: var(--primary, #2563eb);
 }
 
+.waiting-container {
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+/* Cercle avec icône (utilise les variables) */
+.waiting-icon-circle {
+  width: 80px;
+  height: 80px;
+  background: var(--status-analysis-bg);
+  color: var(--status-analysis-text);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 24px auto;
+}
+
+/* Timeline / Étapes */
+.timeline-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  position: relative;
+}
+
+.timeline-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 48px;
+  bottom: -8px;
+  width: 2px;
+  background: var(--border-color);
+}
+
+.timeline-step.completed:not(:last-child)::after {
+  background: var(--primary);
+}
+
+.track-empty-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 20px auto;
+}
+
+.timeline-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  background: #e5e7eb;
+  color: var(--text-muted);
+  z-index: 1;
+}
+
+.timeline-step.completed .timeline-icon {
+  background: var(--primary);
+  color: white;
+}
+
+.timeline-step.current .timeline-icon {
+  background: var(--status-analysis-bg);
+  color: var(--status-analysis-text);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(180, 83, 9, 0);
+  }
+}
+
+.timeline-content strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.timeline-content span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Boîte de code de suivi */
+.tracking-box {
+  background: var(--primary-light);
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: center;
+  margin: 24px 0;
+}
+
+.tracking-code {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+  margin: 12px 0;
+  font-family: 'Courier New', monospace;
+}
+
+
+.track-container {
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* En-tête de page */
+.track-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 700px;
+  margin: 0 auto 20px auto;
+  width: 100%;
+}
+
+/* Carte de recherche */
+.track-search-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Timeline verticale (Suivi) */
+.track-timeline {
+  position: relative;
+  padding-left: 8px;
+}
+
+.track-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  position: relative;
+}
+
+.track-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 48px;
+  bottom: -8px;
+  width: 2px;
+  background: var(--border-color);
+  z-index: 0;
+}
+
+.track-step.completed:not(:last-child)::after {
+  background: var(--primary);
+}
+
+.track-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  background: #e5e7eb;
+  color: var(--text-muted);
+  z-index: 1;
+  position: relative;
+}
+
+.track-step.completed .track-icon {
+  background: var(--primary);
+  color: white;
+}
+
+.track-step.current .track-icon {
+  background: var(--status-analysis-bg);
+  color: var(--status-analysis-text);
+  animation: trackPulse 2s infinite;
+}
+
+@keyframes trackPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(180, 83, 9, 0);
+  }
+}
+
+.track-content {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.track-content strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  color: var(--text-main);
+}
+
+.track-content p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.track-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Bannière de statut global */
+.track-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--status-analysis-bg);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--status-analysis-text);
+  margin-bottom: 24px;
+}
+
+.track-status-icon {
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: var(--status-analysis-text);
+  flex-shrink: 0;
+}
+
+/* Bloc info dossier */
+.track-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 500px) {
+  .track-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.track-info-item {
+  background: #f9fafb;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.track-info-item .label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.track-info-item .value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Carte vide (état initial) */
+.track-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.track-empty-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 20px auto;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 24px;
+  }
+}
+
 
 /* =========================================================
    2. TABLETTE (768px - 1023px)
@@ -1185,6 +1615,7 @@ input:checked+.slider:before {
 }
 
 
+
 /* =========================================================
    3. GRAND ÉCRAN (>= 1024px)
    -> Métamorphose en Sidebar complète (icônes + texte)
@@ -1277,6 +1708,10 @@ input:checked+.slider:before {
 @media (max-width: 768px) {
 
   .flex-8 {
+    flex: 1
+  }
+
+  .flex-6 {
     flex: 1
   }
 

@@ -12,6 +12,16 @@ import { Orienter } from './layouts/orienter';
 import { Orientation } from './layouts/orientations';
 import { CasOrientes } from './layouts/casorienté';
 import { Chatbot } from './layouts/chatbot';
+import { CasSuivie } from './layouts/cassuivie';
+import { CategorieUtilisateurOrg } from './layouts/categorieutilisateurorg';
+import { UtilisateurOrg } from './layouts/utilisateursorg';
+import { Rejoindre } from './layouts/rejoindre';
+import { LandingPage } from './layouts/waiting';
+import { HomeAdmin } from './layouts/HomeAdmin';
+import { Organisations } from './layouts/Organisations';
+import { SuivieDossier } from './layouts/suivie';
+import { Fonctionnalites } from './layouts/fonctionnalites';
+import { CategorieUtilisateur } from './layouts/categorieutilisateur';
 
 function App() {
   return (
@@ -25,10 +35,21 @@ function App() {
           <Route path="signalement/:signalementid/orienter" element={<Orienter />} />
           <Route path="casorientes" element={<CasOrientes />} />
           <Route path="orientation" element={<Orientation />} />
+          <Route path="cassuivie" element={<CasSuivie />} />
+          <Route path="categorieutilisateurorg" element={<CategorieUtilisateurOrg />} />
+          <Route path="utilisateurorg" element={<UtilisateurOrg />} />
+        </Route>
+        <Route path="/admin" element={<HomeAdmin />} >
+          <Route path="organisations" element={<Organisations />} />
+          <Route path="fonctionnalites" element={<Fonctionnalites />} />
+          <Route path="categorieutilisateur" element={<CategorieUtilisateur />} />
         </Route>
         <Route path="/signaler" element={<Signaler />} />
         <Route path="/inscription" element={<Inscription />} />
+        <Route path="/rejoindre" element={<Rejoindre />} />
         <Route path="/chatbot" element={<Chatbot />} />
+        <Route path="/waiting" element={<LandingPage />} />
+        <Route path="/suiviedossier" element={<SuivieDossier />} />
       </Routes>
     </BrowserRouter>
   );

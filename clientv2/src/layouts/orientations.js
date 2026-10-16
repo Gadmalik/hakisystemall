@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 export function Orientation({}){
     const link = process.env.REACT_APP_LINK;
     const navigate = useNavigate();
-    const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
     const [incidents, setIncidents] = useState([]);
 
     const loadIncidents = async () => {

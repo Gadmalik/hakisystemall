@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 export function CasOrientes({}){
     const link = process.env.REACT_APP_LINK;
     const navigate = useNavigate();
-    const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
     const [incidents, setIncidents] = useState([]);
 
     const loadIncidents = async () => {
@@ -24,7 +24,7 @@ export function CasOrientes({}){
             <Header title={"Orientations"} retour={true} />
 
             <div style={{padding: "10px", marginBottom: "10px"}}>
-                <p>Gérer les cas qui vous ont été orientés depuis d'autres structures.</p>
+                <p>Gérer les cas que vous avez orienté vers d'autres structures.</p>
             </div>
             <div className="flex-between" style={{margin: "10px"}}>
                 <div class="chip-group">

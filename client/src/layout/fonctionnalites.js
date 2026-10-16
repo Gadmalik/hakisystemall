@@ -52,7 +52,7 @@ export function Fonctionnalites() {
                                     <th>Route</th>
                                     <th>Status</th>
                                 </tr>
-                            </thead>
+                        </thead>
                             <tbody>
                                 {filteredFonctionnalites.map((fonctionnalite, index) => (
                                     <tr key={index}>
