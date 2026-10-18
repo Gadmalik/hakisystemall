@@ -83,7 +83,7 @@ export function Organisations({}){
 
     return(
         <div className="pagestructure">
-            <Header title={"Signalements"} retour={true} />
+            <Header title={"Organisations"} retour={true} />
             {loaderVisible && <Loader />}
             <div className="flex-between" style={{margin: "10px"}}>
                 {/* <div class="chip-group">

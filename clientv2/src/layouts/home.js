@@ -43,7 +43,6 @@ export function Home() {
         } catch (error) {
             console.log(error);
             setVisibleLoader(false);
-
         }
     }
     const subscribeToPush = async () => {
@@ -78,11 +77,11 @@ export function Home() {
     
     const verifRoute = () => {
     // Si la liste est encore vide, on attend le chargement
+        console.log(`/${location.pathname.split("/")[2]}`)
         if (fonctionnalites.length === 0) return;
-
         // Utilisation de .some() pour vérifier si la route actuelle est autorisée
         const isAllowed = fonctionnalites.some((fonct) =>
-            fonct.status && (location.pathname.endsWith(fonct.route) || location.pathname === fonct.route)
+            fonct.status && (location.pathname.endsWith(fonct.route) || location.pathname === fonct.route || `/${location.pathname.split("/")[2]}` == fonct.route)
         );
 
         if (!isAllowed) {

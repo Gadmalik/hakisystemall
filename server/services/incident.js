@@ -53,7 +53,8 @@ export async function getIncidentById(req, res){
     try{
         const {signalementid, cond} = req.params;
         let condition = "";
-        if(cond){
+        console.log("ici");
+        if(cond != "none"){
             condition = " WHERE code_unique=$1";
         }else{
             condition = " WHERE inc.id_incident=$1";

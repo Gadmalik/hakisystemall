@@ -172,14 +172,14 @@ export function UtilisateurOrg({}){
     },[users])
     return(
         <div className="pagestructure">
-            <Header title={"Signalements"} retour={true} />
+            <Header title={"Organisations"} retour={true} />
             <div className="flex-between" style={{margin: "10px"}}>
                 <div class="chip-group">
-                    <button class="chip">Tous</button>
+                    {/* <button class="chip">Tous</button>
                     <button class="chip">Nouveaux</button>
                     <button class="chip active">En analyse</button>
                     <button class="chip">Cloturés</button>
-                    <button class="chip">Orientés</button>
+                    <button class="chip">Orientés</button> */}
                 </div>
                 <Button label={"Exporter"} type={"secondary"} size="sm" onClick={() => {}} />
             </div>

@@ -22,6 +22,7 @@ import { Organisations } from './layouts/Organisations';
 import { SuivieDossier } from './layouts/suivie';
 import { Fonctionnalites } from './layouts/fonctionnalites';
 import { CategorieUtilisateur } from './layouts/categorieutilisateur';
+// import { Articles } from '../../client/src/layout/Articles';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="cassuivie" element={<CasSuivie />} />
           <Route path="categorieutilisateurorg" element={<CategorieUtilisateurOrg />} />
           <Route path="utilisateurorg" element={<UtilisateurOrg />} />
+          {/* <Route path="articles" element={<Articles />} /> */}
         </Route>
         <Route path="/admin" element={<HomeAdmin />} >
           <Route path="organisations" element={<Organisations />} />

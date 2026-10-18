@@ -1,7 +1,7 @@
 :root {
-  --primary: #0e7490;
-  --primary-hover: #155e75;
-  --primary-light: #e0f2fe;
+  --primary: #384bb6;
+  --primary-hover: #6b63ffe5;
+  --primary-light: #cbc8ff;
   --text-main: #1f2937;
   --text-muted: #6b7280;
   --bg-body: #f3f4f6;
@@ -10,7 +10,7 @@
 
   /* Statuts */
   --status-new-bg: #e0f2fe;
-  --status-new-text: #0369a1;
+  --status-new-text: #6C63FF;
   --status-analysis-bg: #fef3c7;
   --status-analysis-text: #b45309;
   --status-oriented-bg: #dcfce7;

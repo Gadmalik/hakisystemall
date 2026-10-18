@@ -16,7 +16,7 @@ export function SingleSignalement(){
 
     const loadSignalement = async () => {
         try {
-            const response = await fetch(`${link}/signalement/${signalementid}`);
+            const response = await fetch(`${link}/signalement/${signalementid}/none`);
             const data = await response.json();
             setSignalement(data.data);
             console.log(data.data);

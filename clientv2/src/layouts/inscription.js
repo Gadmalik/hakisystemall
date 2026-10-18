@@ -175,7 +175,7 @@ export function Inscription() {
                     </p>
                     <Button label={"Créer mon compte"} type={"submit"} variant={"primary"} size="block" loader={loaderVisible} />
                     <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous avez déjà un compte ? <a href="/">Connectez-vous</a></p>
-                    <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous préférez signaler sans compte ? <a href="/signaler">Signaler</a></p><p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous êtes une organisation ou un professionnel ? <a href="#">Rejoignez-nous</a></p>
+                    <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous préférez signaler sans compte ? <a href="/signaler">Signaler</a></p><p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous êtes une organisation ou un professionnel ? <a href="/rejoindre">Rejoignez-nous</a></p>
                 </form>
             </div>
         </div>

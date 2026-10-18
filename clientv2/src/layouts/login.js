@@ -133,8 +133,7 @@ export function Login() {
                         <a href="#">Mot de passe oublié ?</a>
                     </p>
                     <Button label={"Se connecter"} type={"submit"} variant={"primary"} size="block" loader={loaderVisible} />
-                    <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous n'avez pas de compte ? <a href="#">Inscrivez-vous</a></p>
-                    <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous préférez signaler sans compte ? <a href="/signaler">Signaler</a></p>
+                    <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous n'avez pas de compte ? <a href="/inscription">Inscrivez-vous</a> ou <a href="/signaler">Signaler sans compte </a></p>
                     <p className="auth-footer" style={{textAlign: "center", marginTop: "24px"}}>Vous aimeriez suivre votre signalement ? <a href="/suiviedossier">suivre vos signalements</a></p>
                     
                 </form>
