@@ -34,22 +34,149 @@ export async function verifStatus(dossierid, type){
     }
 }
 
-export async function getDossier({userid, limit}){
+export async function getDossier({userid, limit, status, categorieid, niveau, search, all, libre}){
     try{
-        if(userid){
-            const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id JOIN attribuerdossier ad ON inc.id_incident=ad.dossierid WHERE ad.userid=$1 AND (ad.status != 'refusé' OR ad.status != 'abandonné')", [userid]);
-            return {_inc:"success", code:"success", data: datas.rows};
-        }else{
-            let  additionnal = "";
-            if(limit){
-                additionnal = `limit ${limit}`;
+        if(userid && all !== "true" && all !== true){
+            const datas = await pool.query(
+                `SELECT inc.*, catinc.designation AS categorie, catinc.niveau, ad.status AS statusatt, ad.type AS type_attribut, ad.attribuerid, org.designation AS organisation_nom 
+                 FROM incident inc 
+                 JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id 
+                 JOIN attribuerdossier ad ON inc.id_incident=ad.dossierid 
+                 LEFT JOIN organisation org ON ad.organisationid=org.organisationid
+                 WHERE ad.userid=$1 AND (ad.status != 'refusé' AND ad.status != 'abandonné')
+                 ORDER BY inc.id_incident DESC`,
+                [userid]
+            );
+            const rows = datas.rows.map(r => {
+                if(r.annexes && typeof r.annexes === 'string'){
+                    try { r.annexes = JSON.parse(r.annexes); } catch(e){}
+                }
+                return r;
+            });
+            return {status:"success", success: true, code:"success", data: rows};
+        } else if (libre === "true" || libre === true) {
+            // Signalements libres : sans prise en charge active
+            let whereClauses = ["NOT EXISTS (SELECT 1 FROM attribuerdossier ad2 WHERE ad2.dossierid = inc.id_incident AND ad2.status NOT IN ('abandonné','refusé'))"];
+            let params = [];
+
+            if (categorieid) {
+                params.push(parseInt(categorieid, 10));
+                whereClauses.push(`inc.categorieid = $${params.length}`);
             }
-            const datas = await pool.query("SELECT *, ad.status AS statusinc, catinc.designation AS categorie FROM incident inc JOIN categorie_incident catinc ON inc.categorieid=catinc.categorie_id LEFT JOIN attribuerdossier ad ON (inc.id_incident=ad.dossierid AND (ad.status='en cours' OR ad.status= 'en attente' OR ad.status='résolu')) WHERE ad.status IS NULL "+additionnal);
-            return {_inc:"success", code:"success", data: datas.rows};
+            if (niveau) {
+                params.push(niveau.toLowerCase());
+                whereClauses.push(`LOWER(catinc.niveau) = $${params.length}`);
+            }
+            if (search && search.trim() !== "") {
+                params.push(`%${search.trim().toLowerCase()}%`);
+                whereClauses.push(`(LOWER(inc.code_unique) LIKE $${params.length} OR LOWER(inc.description) LIKE $${params.length} OR LOWER(inc.lieu) LIKE $${params.length} OR LOWER(catinc.designation) LIKE $${params.length})`);
+            }
+
+            const whereStr = " WHERE " + whereClauses.join(" AND ");
+            let limitStr = "";
+            if (limit && parseInt(limit, 10) > 0) {
+                params.push(parseInt(limit, 10));
+                limitStr = ` LIMIT $${params.length}`;
+            }
+
+            const queryStr = `
+                SELECT inc.*, catinc.designation AS categorie, catinc.niveau,
+                    NULL AS statusatt, NULL AS type_attribut, NULL AS attribuerid, NULL AS organisation_nom,
+                    NULL AS nom_gestionnaire, NULL AS prenom_gestionnaire
+                FROM incident inc
+                JOIN categorie_incident catinc ON inc.categorieid = catinc.categorie_id
+                ${whereStr}
+                ORDER BY inc.id_incident DESC
+                ${limitStr}
+            `;
+
+            const datas = await pool.query(queryStr, params);
+            const rows = datas.rows.map(r => {
+                if(r.annexes && typeof r.annexes === 'string'){
+                    try { r.annexes = JSON.parse(r.annexes); } catch(e){}
+                }
+                return r;
+            });
+            return {status:"success", success: true, code:"success", data: rows};
+        } else {
+            let whereClauses = [];
+            let params = [];
+
+            if (status) {
+                const s = status.toLowerCase();
+                if (s === 'nouveau' || s === 'nouveaux' || s === 'unassigned') {
+                    whereClauses.push("(ad.status IS NULL OR ad.status = 'nouveau')");
+                } else if (s === 'en cours' || s === 'encours' || s === 'analyse') {
+                    whereClauses.push("(ad.status = 'en cours' OR ad.status = 'en attente' OR ad.status = 'accepté')");
+                } else if (s === 'résolu' || s === 'resolu' || s === 'cloturé' || s === 'cloture') {
+                    whereClauses.push("(ad.status = 'résolu' OR ad.status = 'cloturé')");
+                } else if (s === 'orienté' || s === 'oriente' || s === 'orientés') {
+                    whereClauses.push("ad.type = 'orientation'");
+                } else if (s !== 'tous' && s !== 'all') {
+                    params.push(status);
+                    whereClauses.push(`ad.status = $${params.length}`);
+                }
+            }
+
+            if (categorieid) {
+                params.push(parseInt(categorieid, 10));
+                whereClauses.push(`inc.categorieid = $${params.length}`);
+            }
+
+            if (niveau) {
+                params.push(niveau.toLowerCase());
+                whereClauses.push(`LOWER(catinc.niveau) = $${params.length}`);
+            }
+
+            if (search && search.trim() !== "") {
+                params.push(`%${search.trim().toLowerCase()}%`);
+                whereClauses.push(`(LOWER(inc.code_unique) LIKE $${params.length} OR LOWER(inc.description) LIKE $${params.length} OR LOWER(inc.lieu) LIKE $${params.length} OR LOWER(catinc.designation) LIKE $${params.length})`);
+            }
+
+            const whereStr = whereClauses.length > 0 ? " WHERE " + whereClauses.join(" AND ") : "";
+
+            let limitStr = "";
+            if (limit && parseInt(limit, 10) > 0) {
+                params.push(parseInt(limit, 10));
+                limitStr = ` LIMIT $${params.length}`;
+            }
+
+            const queryStr = `
+                SELECT 
+                    inc.*, 
+                    catinc.designation AS categorie, 
+                    catinc.niveau, 
+                    ad.status AS statusatt, 
+                    ad.type AS type_attribut, 
+                    ad.attribuerid, 
+                    org.designation AS organisation_nom,
+                    usr.nom AS nom_gestionnaire,
+                    usr.prenom AS prenom_gestionnaire
+                FROM incident inc 
+                JOIN categorie_incident catinc ON inc.categorieid = catinc.categorie_id 
+                LEFT JOIN attribuerdossier ad ON (
+                    inc.id_incident = ad.dossierid 
+                    AND ad.attribuerid = (SELECT attribuerid FROM attribuerdossier WHERE dossierid=inc.id_incident ORDER BY attribuerid DESC LIMIT 1)
+                ) 
+                LEFT JOIN organisation org ON ad.organisationid = org.organisationid
+                LEFT JOIN utilisateurs usr ON ad.userid = usr.userid
+                ${whereStr}
+                ORDER BY inc.id_incident DESC
+                ${limitStr}
+            `;
+
+            const datas = await pool.query(queryStr, params);
+            const rows = datas.rows.map(r => {
+                if(r.annexes && typeof r.annexes === 'string'){
+                    try { r.annexes = JSON.parse(r.annexes); } catch(e){}
+                }
+                return r;
+            });
+            return {status:"success", success: true, code:"success", data: rows};
         }
     }catch(error){
-        console.log(error);
-        return {status: "error", code:"error", error:error}
+        console.log("Error getDossier:", error);
+        return {status: "error", success: false, code:"error", error: error};
     }
 }
 
@@ -121,4 +248,19 @@ export async function updateProfile({username, noms, adresse, phone, email, pass
     }
 }
 
+export async function updateUtilisateur({userid, nom, prenom, phone, adresse}){
+    try{
+        const reponse = await pool.query(
+            "UPDATE utilisateurs SET nom=$1, prenom=$2, phone=$3, adresse=$4 WHERE userid=$5 RETURNING *",
+            [nom, prenom, phone, adresse, userid]
+        );
+        if(reponse.rowCount === 0){
+            return {status: "error", code:"not_found", message:"Utilisateur non trouvé"};
+        }
+        return {status:"success", code:"success", data: reponse.rows[0]};
+    }catch(error){
+        console.log(error);
+        return {status: "error", code:"error", error:error};
+    }
+}
 

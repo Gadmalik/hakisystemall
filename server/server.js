@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import { AddUtilisateur, AddUtilisateurOrg, getUserByCode, GetUtilisateur, login, SetMdpUtilisateur } from "./services/utilisateurs.js";
 import { ConfirmMail, ConfirmOrgMail } from "./services/mailsModel.js";
 import { sendMail } from "./services/mail.js";
-import { AddSignalement, getIncidentById, getIncidentByUser, getIncidentOrienteByOrganisationId, getIncidentOrienteByUserId, getIncidentSuivieByUserId } from "./services/incident.js";
+import { AddSignalement, getIncidentById, getIncidentByUser, getIncidentOrienteByOrganisationId, getIncidentOrienteByUserId, getIncidentSuivieByUserId, getIncidentStats } from "./services/incident.js";
 import { SendNotification, SubscribeUser } from "./services/notification.js";
 import { actionOrganisations, addOrganisation, assignerdomaine, getOrganisation, getOrganisations, getTypeOrganisation } from "./services/organisation.js";
 import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, addCatUtilisateur, getcategorieutilisateurOrg, getCatUtilisateur, getDefaultCategorieUtilisateur, getFonctionnalitesByCategorieutilisateurs, getUtilisateursByOrganisationId } from "./services/categorieutilisateurs.js";
@@ -251,18 +251,39 @@ app.get("/getcategorieutilisateurorg/:organisationid", async (req, res) => {
 app.post("/assignerdomaine", async (req, res) => assignerdomaine(req, res));
 
 
-app.post("/incident", uploadannexes.array("annexe", 3), async (req, res) => {
+app.post("/incident", uploadannexes.array("annexe", 5), async (req, res) => {
     try{
         const date_create = new Date().toISOString().split('T')[0];
-        const {categorieid,lieu,description,date,userid,contact,genre,trancheage, iscontact, annexe} = req.body;
-        const annexes = req.files.map(file => ({ path: file.path, size: file.size, mimetype: file.mimetype}));
-        const reponse = await AddSignalement({categorieid,date,lieu,description,date_create,userid, contact,genre,trancheage, iscontact, annexes});
+        const {categorieid,lieu,description,date,userid,contact,genre,trancheage, iscontact} = req.body;
+        const annexes = req.files ? req.files.map(file => ({ 
+            path: file.path, 
+            filename: file.originalname,
+            size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`, 
+            mimetype: file.mimetype,
+            url: `/uploads/annexes/${file.filename}`
+        })) : [];
+        const reponse = await AddSignalement({
+            categorieid: parseInt(categorieid, 10),
+            date,
+            lieu,
+            description,
+            date_create,
+            userid: userid ? parseInt(userid, 10) : null,
+            contact,
+            genre,
+            trancheage: trancheage ? parseInt(trancheage, 10) : null,
+            iscontact: iscontact === 'true' || iscontact === true,
+            annexes
+        });
         res.json(reponse);
     }catch(error){
-        console.log(error);
-        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
+        console.log("Error in /incident:", error);
+        res.status(500).json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
     }
 })
+
+app.get("/incident/stats", async (req, res) => getIncidentStats(req, res));
+app.get("/incident_stats", async (req, res) => getIncidentStats(req, res));
 
 app.get("/incident/:userid", async (req, res) => {
     try{
@@ -275,6 +296,7 @@ app.get("/incident/:userid", async (req, res) => {
     }
 })
 
+app.get("/signalement/:signalementid", async (req, res) => getIncidentById(req, res));
 app.get("/signalement/:signalementid/:cond", async (req, res) => getIncidentById(req, res));
 
 app.post("/notification/subscribe", async (req, res) => {
@@ -301,12 +323,20 @@ app.post("/notification/send", async (req, res) => {
 
 app.get("/getincident", async (req, res) => {
     try{
-        const { limit } = req.query;
-        const datas = await getDossier({userid: req.query.userid, limit});
+        const { limit, userid, status, categorieid, niveau, search, all } = req.query;
+        const datas = await getDossier({ 
+            userid, 
+            limit, 
+            status, 
+            categorieid, 
+            niveau, 
+            search, 
+            all: all || (!userid ? "true" : undefined) 
+        });
         res.json({...datas});
     }catch(error){
-        console.log(error);
-        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error});
+        console.log("Error in /getincident:", error);
+        res.status(500).json({message:"Une erreur s'est produite !", status:"error", code:"", error});
     }
 })
 

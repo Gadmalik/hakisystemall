@@ -312,3 +312,67 @@ export function ConfirmOrgMail(noms, email, code, nomOrganisation) {
 </body>
 </html>`;
 }
+
+export function NewIncidentAlertMail({ nomOrganisation, codeUnique, categorie, lieu, dateIncident, clientUrl }) {
+    const link = `${clientUrl || 'http://localhost:3000'}/home/signalement/${encodeURIComponent(codeUnique)}/code`;
+    return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Nouveau Signalement - HAKI SYSTEM</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+        <div style="background: linear-gradient(135deg, #4338ca 0%, #312e81 100%); color: white; padding: 28px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 1.5rem;">HAKI SYSTEM</h1>
+            <p style="margin: 6px 0 0; opacity: 0.9; font-size: 0.92rem;">Alerte nouveau dossier dans votre domaine</p>
+        </div>
+        <div style="padding: 28px 24px; color: #1e293b; line-height: 1.6;">
+            <p>Bonjour à l'équipe de <strong>${nomOrganisation}</strong>,</p>
+            <p>Un citoyen vient de soumettre un signalement correspondant à votre domaine d'intervention : <strong style="color: #4338ca;">${categorie}</strong>.</p>
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                <p style="margin: 4px 0;"><strong>Code unique :</strong> <code style="color: #4338ca; font-weight: 700;">${codeUnique}</code></p>
+                <p style="margin: 4px 0;"><strong>Catégorie :</strong> ${categorie}</p>
+                <p style="margin: 4px 0;"><strong>Lieu :</strong> ${lieu || 'Non précisé'}</p>
+                <p style="margin: 4px 0;"><strong>Date :</strong> ${dateIncident || 'Aujourd\'hui'}</p>
+            </div>
+            <p style="text-align: center; margin: 24px 0;">
+                <a href="${link}" style="display: inline-block; background: #4338ca; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">Consulter le dossier</a>
+            </p>
+            <p style="font-size: 0.82rem; color: #64748b;">Lien direct : <a href="${link}">${link}</a></p>
+        </div>
+        <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 18px 24px; text-align: center; font-size: 0.78rem; color: #64748b;">
+            <p>&copy; 2026 HAKI SYSTEM. Plateforme citoyenne et professionnelle de défense des droits.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+}
+
+export function OrganisationStatusMail({ nomOrganisation, status, messageExplication }) {
+    const isActif = status === 'actif';
+    return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Statut Organisation - HAKI SYSTEM</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+        <div style="background: ${isActif ? '#059669' : '#dc2626'}; color: white; padding: 28px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 1.5rem;">HAKI SYSTEM</h1>
+            <p style="margin: 6px 0 0; opacity: 0.9;">Mise à jour de votre compte organisation</p>
+        </div>
+        <div style="padding: 28px 24px; color: #1e293b; line-height: 1.6;">
+            <p>Bonjour <strong>${nomOrganisation}</strong>,</p>
+            <p>L'administration de HAKI SYSTEM vous informe que votre statut est désormais : <strong style="color: ${isActif ? '#059669' : '#dc2626'}; text-transform: uppercase;">${status}</strong>.</p>
+            ${messageExplication ? `<p><em>${messageExplication}</em></p>` : ''}
+            ${isActif ? '<p>Vous pouvez maintenant accéder à votre espace de travail et commencer à traiter les dossiers citoyens.</p>' : '<p>Pour toute question ou demande de recours, contactez le support administrateur.</p>'}
+        </div>
+        <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 18px 24px; text-align: center; font-size: 0.78rem; color: #64748b;">
+            <p>&copy; 2026 HAKI SYSTEM. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+}
