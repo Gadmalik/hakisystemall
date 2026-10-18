@@ -1,227 +1,382 @@
 import { useNavigate } from "react-router-dom";
 import { Header } from "../components/maincomp";
-import { Button, FormGroup, Input, Switch } from "../components/minicomp";
-import { useState } from "react";
-import { useEffect } from "react";
+import { Button, FormGroup, Input, Switch, Loader, EmptyState, Badge } from "../components/minicomp";
+import { useState, useEffect, useMemo } from "react";
 
-export function CategorieUtilisateur({}){
-    const [user, setUser] = useState(JSON.parse(localStorage.getItem("userinfo")));
+export function CategorieUtilisateur({}) {
     const [categorieUtilisateurs, setCategorieUtilisateurs] = useState([]);
-    const [filteredCategorieUtilisateur, setFilteredCategorieUtilisateur] = useState([]);
-    const [selectedCategorieUtilisateur, setSelectedCategorieUtilisateur] = useState([]);
     const [fonctionnalites, setFonctionnalites] = useState([]);
-    const [categorieutilisateur, setCategorieutilisateur] = useState({
-            designation:"",
-            description:"",
-            confirm: false,
-            organisation: false,
-            fonctionnalites: []
-        });
     const [loaderVisible, setLoaderVisible] = useState(false);
-    const [error, setError] = useState("");
-    const [activeCategorie, setActiveCategorie] = useState(null);
+    const [actionLoader, setActionLoader] = useState(false);
+    const [activeTab, setActiveTab] = useState("all");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [error, setError] = useState({});
+    const [activeCategorieId, setActiveCategorieId] = useState(null);
+    const [successMsg, setSuccessMsg] = useState("");
     const link = process.env.REACT_APP_LINK;
-    const navigate = useNavigate();
-    const ajouter = async (event) => {
-        event.preventDefault();
 
-        setError({});
-        if(categorieutilisateur.designation == ""){
-            setError({designation:"Veuillez saisir une designation"});
-            return false;
-        }
-        if(categorieutilisateur.description == ""){
-            setError({description:"Veuillez saisir une description"});
-            return false;
-        }
-        
-        setLoaderVisible(true);
-        await fetch(`${link}/categorieutilisateur`, {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json",
-            },
-            body:JSON.stringify(categorieutilisateur),
-        }).then((res) => res.json()).then((data) => {
-            console.log(data);
-            
-            setLoaderVisible(false);
-            if(data.status =="success"){
-                alert("Categorie d'utilisateur ajoutée avec succès !");
-                setCategorieutilisateur({
-                    designation:"",
-                    description:"",
-                    confirm: true,
-                    organisation: true,
-                    fonctionnalites: []
-                });
-                setError("")
-            }else{
-                setError(data.message);
-            }
-        }).catch((error) => {
-            setError("Une erreur s'est produite ! ");
-            console.error(error);
-            setLoaderVisible(false);
-        })
-    }
+    const initialCategoryState = {
+        designation: "",
+        description: "",
+        confirm: false,
+        organisation: false,
+        fonctionnalites: []
+    };
+    const [formData, setFormData] = useState(initialCategoryState);
+
     const loadCategorieUtilisateurs = async () => {
-        setLoaderVisible(true)
+        setLoaderVisible(true);
         try {
-            await fetch(`${link}/categorieutilisateur`).then((response) => response.json()).then((data) => {
-                if(data.success){
-                    setCategorieUtilisateurs(data.data);
-                }
-                setLoaderVisible(false)
-            });
+            const res = await fetch(`${link}/categorieutilisateur`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.data)) {
+                setCategorieUtilisateurs(data.data);
+            }
         } catch (error) {
             console.log(error);
-            setLoaderVisible(false)
         }
-    }
-    const handleCheckboxChange = (e, categorieutilisateurid) => {
-        if (e.target.checked) {
-            setSelectedCategorieUtilisateur([...selectedCategorieUtilisateur, categorieutilisateurid]);
-        } else {
-            setSelectedCategorieUtilisateur(selectedCategorieUtilisateur.filter((id) => id !== categorieutilisateurid));
-        }
-    }
-    const searchCategorieUtilisateur = (e) => {
-        const search = e.target.value;
-        setFilteredCategorieUtilisateur(categorieUtilisateurs.filter((categorie) => `${categorie.libelle} ${categorie.description}`.toLowerCase().includes(search.toLowerCase())));
-    }
+        setLoaderVisible(false);
+    };
+
     const loadFonctionnalites = async () => {
-        setLoaderVisible(true)
         try {
-            await fetch(`${link}/fonctionnalites`).then((response) => response.json()).then((data) => {
-                if(data.success){
-                    setFonctionnalites(data.data);
-                }
-                setLoaderVisible(false)
-            });
+            const res = await fetch(`${link}/fonctionnalites`);
+            const data = await res.json();
+            if (data.status === "success" && Array.isArray(data.data)) {
+                setFonctionnalites(data.data);
+            }
         } catch (error) {
             console.log(error);
-            setLoaderVisible(false)
         }
-    }
+    };
 
     const handleFonctionnaliteClick = (fonctionnaliteid) => {
-        if(categorieutilisateur.fonctionnalites?.includes(fonctionnaliteid)){
-            setCategorieutilisateur({...categorieutilisateur, fonctionnalites:categorieutilisateur.fonctionnalites.filter((id) => id !== fonctionnaliteid)});
-        }else{
-            setCategorieutilisateur({...categorieutilisateur, fonctionnalites:[...categorieutilisateur.fonctionnalites, fonctionnaliteid]});
+        const current = formData.fonctionnalites || [];
+        if (current.includes(fonctionnaliteid)) {
+            setFormData({ ...formData, fonctionnalites: current.filter((id) => id !== fonctionnaliteid) });
+        } else {
+            setFormData({ ...formData, fonctionnalites: [...current, fonctionnaliteid] });
         }
-    }
-    const executeAction = async (action) => {
-        // try {
-        //     const formData = new FormData();
-        //     formData.append("op", "changestate");
-        //     formData.append("action", action);
-        //     formData.append("ids", JSON.stringify(selectedUsers));
-        //     formData.append("user", JSON.stringify(user));
-        //     await fetch(`${link}/utilisateur/`, {
-        //         method: "POST",
-        //         body: formData,
-        //     }).then((response) => response.json()).then((data) => {
-        //         if(data.status == 'success'){
-        //             alert("Utilisateur mis a jour avec succès");
-        //             setSelectedUsers([]);
-        //         }
-        //     });
-        // } catch (error) {
-        //     console.log(error);
-        // }
-    }
+    };
+
+    const selectAllFonctionnalites = () => {
+        setFormData({ ...formData, fonctionnalites: fonctionnalites.map((f) => f.fonctionnaliteid) });
+    };
+
+    const deselectAllFonctionnalites = () => {
+        setFormData({ ...formData, fonctionnalites: [] });
+    };
+
+    const startEdit = (cat) => {
+        setActiveCategorieId(cat.categorieutilisateurid);
+        setFormData({
+            designation: cat.designation || "",
+            description: cat.description || "",
+            confirm: !!cat.confirm,
+            organisation: !!cat.organisation,
+            fonctionnalites: cat.fonctionnalites || []
+        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const cancelEdit = () => {
+        setActiveCategorieId(null);
+        setFormData(initialCategoryState);
+        setError({});
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const newErrors = {};
+        if (!formData.designation?.trim()) newErrors.designation = "Veuillez saisir une désignation";
+        if (!formData.description?.trim()) newErrors.description = "Veuillez saisir une description";
+
+        if (Object.keys(newErrors).length > 0) {
+            setError(newErrors);
+            return;
+        }
+
+        setError({});
+        setActionLoader(true);
+        try {
+            const endpoint = activeCategorieId ? `${link}/update_categorieutilisateur` : `${link}/categorieutilisateur`;
+            const method = activeCategorieId ? "PUT" : "POST";
+
+            const res = await fetch(endpoint, {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    categorieutilisateurid: activeCategorieId,
+                    ...formData
+                }),
+            });
+            const data = await res.json();
+
+            if (data.status === "success" || data.success) {
+                setSuccessMsg(activeCategorieId ? "Rôle mis à jour avec succès !" : "Catégorie d'utilisateur créée avec succès !");
+                setFormData(initialCategoryState);
+                setActiveCategorieId(null);
+                loadCategorieUtilisateurs();
+                setTimeout(() => setSuccessMsg(""), 5000);
+            } else {
+                setError({ global: data.message || "Une erreur s'est produite" });
+            }
+        } catch (err) {
+            console.error(err);
+            setError({ global: "Erreur de communication avec le serveur" });
+        }
+        setActionLoader(false);
+    };
+
     useEffect(() => {
         loadCategorieUtilisateurs();
         loadFonctionnalites();
-    }, [])
-    useEffect(() => {
-        setFilteredCategorieUtilisateur(categorieUtilisateurs);
-    },[categorieUtilisateurs])
+    }, []);
 
-    useEffect(() => {
-        if(activeCategorie){
-            setCategorieutilisateur(activeCategorie);
-        }
-    },[activeCategorie])
-    return(
+    const filteredCategories = useMemo(() => {
+        return categorieUtilisateurs.filter((cat) => {
+            if (activeTab === "actif" && cat.status !== "actif") return false;
+            if (activeTab === "inactif" && cat.status !== "inactif") return false;
+
+            if (searchTerm.trim() !== "") {
+                const term = searchTerm.toLowerCase();
+                const matchDesig = (cat.designation || "").toLowerCase().includes(term);
+                const matchDesc = (cat.description || "").toLowerCase().includes(term);
+                return matchDesig || matchDesc;
+            }
+            return true;
+        });
+    }, [categorieUtilisateurs, activeTab, searchTerm]);
+
+    return (
         <div className="pagestructure">
-            <Header title={"Signalements"} retour={true} />
-            <div className="flex-between" style={{margin: "10px"}}>
-                <div class="chip-group">
-                    <button class="chip">Tous</button>
-                    <button class="chip">Nouveaux</button>
-                    <button class="chip active">En analyse</button>
-                    <button class="chip">Cloturés</button>
-                    <button class="chip">Orientés</button>
-                </div>
-                <Button label={"Ajouter une categorie"} variant={"primary"} size="sm" onClick={() => {}} />
-            </div>
-            <div class="flex-row" style={{alignItems:"flex-start"}}>
-                <div class="table-responsive-wrapper flex-1">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>
-                                    <input type="checkbox" onChange={(e) => {}} />
-                                </th>
-                                <th>Designation</th>
-                                <th>Description</th>
-                                <th>Statut</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredCategorieUtilisateur.map((categorieutilisateur) => (
-                                <tr>
-                                <td>
-                                    <input type="checkbox" value={categorieutilisateur.categorieutilisateurid} onChange={(e) => handleCheckboxChange(e, categorieutilisateur.categorieutilisateurid)} />
-                                </td>
-                                <td>{categorieutilisateur.designation}</td>
-                                <td>{categorieutilisateur.description}</td>
-                                <td><span class={`badge badge-${categorieutilisateur.status == "actif" ? "success" : "danger"}`}>{categorieutilisateur.status}</span></td>
-                                <td><a onClick={() => setActiveCategorie(categorieutilisateur)} class="link-action"><i class="fas fa-edit"></i></a></td>
-                            </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-                <form class="card flex-6" onSubmit={ajouter}>
-                    <h3>{activeCategorie ? "Modifier" : "Ajouter"}</h3>
-                    <div>
+            <Header title={"Catégories d'utilisateurs & Rôles"} retour={true} />
+            {loaderVisible && <Loader />}
 
-                        <FormGroup label={"Designation"} icone={"tag"} error={error.designation}>
-                            <Input type={"text"} value={categorieutilisateur.designation} onChange={(value) => setCategorieutilisateur({...categorieutilisateur, designation:value})} placeholder={"Designation"} />
-                        </FormGroup>
-                        <FormGroup label={"Description"} icone={"pen"} error={error.description}>
-                            <Input type={"text"} value={categorieutilisateur.description} onChange={(value) => setCategorieutilisateur({...categorieutilisateur, description:value})} placeholder={"Description"} />
-                        </FormGroup>
-
-                        <div class="flex-row">
-                            <div class="flex-column flex-1">
-                                <p><span>Cette catégorie de compte aura besoin d'une confirmation de l'administrateur.</span></p>
-                            </div>
-                            <Switch onChange={(value) => setCategorieutilisateur({...categorieutilisateur, confirm:value})} value={categorieutilisateur.confirm} />
-                        </div>
-                        <div class="flex-row">
-                            <div class="flex-column flex-1">
-                                <p><span>Cette catégorie de compte sera liée à une organisation.</span></p>
-                            </div>
-                            <Switch onChange={(value) => setCategorieutilisateur({...categorieutilisateur, organisation:value})} value={categorieutilisateur.organisation} />
-                        </div>
-
-                        <FormGroup label={"Fonctionnalites"} icone={"users"}>
-                            <div className="chip-group">
-                                {fonctionnalites.map((fonctionnalite) => (
-                                    <button type="button" class={`chip ${categorieutilisateur.fonctionnalites?.includes(fonctionnalite.fonctionnaliteid) ? "active" : ""}`} onClick={() => handleFonctionnaliteClick(fonctionnalite.fonctionnaliteid)}>{categorieutilisateur.fonctionnalites?.includes(fonctionnalite.fonctionnaliteid) ? <i class="fas fa-check"></i> : <i class="fas fa-plus"></i>}{fonctionnalite.designation}</button>
-                                ))}
-                            </div>
-                        </FormGroup>
-                        <Button label={activeCategorie ? "Modifier" : "Ajouter"} onClick={() => {}} icone="save" loader={loaderVisible} type={"submit"} size={"box"} variant={"primary"} />
+            <div style={{ padding: "15px 20px" }}>
+                {successMsg && (
+                    <div style={{ background: "#dcfce7", color: "#166534", padding: "12px 16px", borderRadius: "8px", border: "1px solid #bbf7d0", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <i className="fa-solid fa-circle-check"></i>
+                        {successMsg}
                     </div>
-                </form>
+                )}
+
+                {/* Filtres et recherche */}
+                <div className="flex-between" style={{ flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
+                    <div className="chip-group">
+                        <button
+                            type="button"
+                            className={`chip ${activeTab === "all" ? "active" : ""}`}
+                            onClick={() => setActiveTab("all")}
+                        >
+                            Tous les rôles ({categorieUtilisateurs.length})
+                        </button>
+                        <button
+                            type="button"
+                            className={`chip ${activeTab === "actif" ? "active" : ""}`}
+                            onClick={() => setActiveTab("actif")}
+                        >
+                            <i className="fa-solid fa-circle" style={{ color: "#16a34a", fontSize: "0.6rem", marginRight: "4px" }}></i>
+                            Actifs ({categorieUtilisateurs.filter(c => c.status === "actif").length})
+                        </button>
+                    </div>
+
+                    <div style={{ width: "260px" }}>
+                        <input
+                            type="search"
+                            className="form-control"
+                            placeholder="Rechercher une catégorie..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{ padding: "8px 14px", fontSize: "0.85rem" }}
+                        />
+                    </div>
+                </div>
+
+                {/* Grille : Tableau des rôles & Formulaire */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: "20px", alignItems: "start" }}>
+                    {/* Tableau */}
+                    <div className="table-responsive-wrapper" style={{ margin: 0, background: "white", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
+                        {filteredCategories.length > 0 ? (
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Désignation</th>
+                                        <th>Description</th>
+                                        <th>Options</th>
+                                        <th>Statut</th>
+                                        <th style={{ textAlign: "right" }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredCategories.map((cat) => (
+                                        <tr key={cat.categorieutilisateurid}>
+                                            <td>
+                                                <strong style={{ color: "var(--primary)" }}>{cat.designation}</strong>
+                                            </td>
+                                            <td style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                                                {cat.description}
+                                            </td>
+                                            <td>
+                                                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                                                    {cat.confirm && (
+                                                        <span style={{ background: "#fef3c7", color: "#b45309", padding: "2px 6px", borderRadius: "4px", fontSize: "0.7rem", fontWeight: 600 }}>
+                                                            Validation admin
+                                                        </span>
+                                                    )}
+                                                    {cat.organisation && (
+                                                        <span style={{ background: "#e0e7ff", color: "var(--primary)", padding: "2px 6px", borderRadius: "4px", fontSize: "0.7rem", fontWeight: 600 }}>
+                                                            Organisation
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className={`badge badge-${cat.status === "actif" ? "oriented" : "high"}`}>
+                                                    {cat.status || "actif"}
+                                                </span>
+                                            </td>
+                                            <td style={{ textAlign: "right" }}>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-secondary btn-sm"
+                                                    onClick={() => startEdit(cat)}
+                                                    title="Modifier cette catégorie"
+                                                    style={{ padding: "4px 8px", fontSize: "0.75rem" }}
+                                                >
+                                                    <i className="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <EmptyState
+                                icone="tags"
+                                title="Aucune catégorie trouvée"
+                                message="Aucune catégorie d'utilisateur ne correspond à votre recherche."
+                            />
+                        )}
+                    </div>
+
+                    {/* Formulaire */}
+                    <form className="card" onSubmit={handleSubmit} style={{ margin: 0 }}>
+                        <div className="flex-between" style={{ marginBottom: "14px", borderBottom: "1px solid var(--border-color)", paddingBottom: "10px" }}>
+                            <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "var(--text-main)" }}>
+                                <i className={`fa-solid fa-${activeCategorieId ? "pen-to-square" : "plus"}`} style={{ color: "var(--primary)", marginRight: "8px" }}></i>
+                                {activeCategorieId ? "Modifier la catégorie" : "Ajouter une catégorie"}
+                            </h3>
+                            {activeCategorieId && (
+                                <button
+                                    type="button"
+                                    onClick={cancelEdit}
+                                    style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.8rem", cursor: "pointer" }}
+                                >
+                                    Annuler
+                                </button>
+                            )}
+                        </div>
+
+                        {error.global && (
+                            <div style={{ background: "#fee2e2", color: "#b91c1c", padding: "8px 12px", borderRadius: "6px", fontSize: "0.8rem", marginBottom: "12px" }}>
+                                {error.global}
+                            </div>
+                        )}
+
+                        <div className="flex-column" style={{ gap: "12px" }}>
+                            <FormGroup label={"Désignation du rôle"} icone={"tag"} error={error.designation}>
+                                <Input
+                                    type={"text"}
+                                    value={formData.designation}
+                                    onChange={(value) => setFormData({ ...formData, designation: value })}
+                                    placeholder={"Ex: Juriste Conseiller"}
+                                />
+                            </FormGroup>
+
+                            <FormGroup label={"Description des responsabilités"} icone={"pen"} error={error.description}>
+                                <Input
+                                    type={"text"}
+                                    value={formData.description}
+                                    onChange={(value) => setFormData({ ...formData, description: value })}
+                                    placeholder={"Rôle responsable de la prise en charge..."}
+                                />
+                            </FormGroup>
+
+                            <div style={{ background: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+                                <div className="flex-between" style={{ marginBottom: "8px" }}>
+                                    <span style={{ fontSize: "0.82rem", color: "var(--text-main)" }}>
+                                        Validation administrateur requise
+                                    </span>
+                                    <Switch
+                                        onChange={(value) => setFormData({ ...formData, confirm: value })}
+                                        value={formData.confirm}
+                                    />
+                                </div>
+                                <div className="flex-between">
+                                    <span style={{ fontSize: "0.82rem", color: "var(--text-main)" }}>
+                                        Rôle affilié à une organisation
+                                    </span>
+                                    <Switch
+                                        onChange={(value) => setFormData({ ...formData, organisation: value })}
+                                        value={formData.organisation}
+                                    />
+                                </div>
+                            </div>
+
+                            <FormGroup label={`Permissions attribuées (${(formData.fonctionnalites || []).length}/${fonctionnalites.length})`} icone={"sliders"}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Sélectionnez les accès autorisés :</span>
+                                    <div style={{ display: "flex", gap: "6px" }}>
+                                        <button
+                                            type="button"
+                                            onClick={selectAllFonctionnalites}
+                                            style={{ background: "none", border: "none", color: "var(--primary)", fontSize: "0.72rem", cursor: "pointer", fontWeight: 600 }}
+                                        >
+                                            Tout cocher
+                                        </button>
+                                        <span style={{ color: "#cbd5e1" }}>|</span>
+                                        <button
+                                            type="button"
+                                            onClick={deselectAllFonctionnalites}
+                                            style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.72rem", cursor: "pointer" }}
+                                        >
+                                            Effacer
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="chip-group" style={{ maxHeight: "180px", overflowY: "auto", padding: "4px" }}>
+                                    {fonctionnalites.map((fonct) => {
+                                        const isSelected = (formData.fonctionnalites || []).includes(fonct.fonctionnaliteid);
+                                        return (
+                                            <button
+                                                key={fonct.fonctionnaliteid}
+                                                type="button"
+                                                className={`chip ${isSelected ? "active" : ""}`}
+                                                onClick={() => handleFonctionnaliteClick(fonct.fonctionnaliteid)}
+                                                style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+                                            >
+                                                <i className={`fa-solid fa-${isSelected ? "check" : "plus"}`} style={{ marginRight: "4px" }}></i>
+                                                {fonct.designation}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </FormGroup>
+
+                            <Button
+                                label={activeCategorieId ? "Enregistrer les modifications" : "Créer la catégorie"}
+                                icone="floppy-disk"
+                                loader={actionLoader}
+                                type={"submit"}
+                                size={"block"}
+                                variant={"primary"}
+                            />
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    )
+    );
 }

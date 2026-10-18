@@ -323,7 +323,7 @@ app.post("/notification/send", async (req, res) => {
 
 app.get("/getincident", async (req, res) => {
     try{
-        const { limit, userid, status, categorieid, niveau, search, all } = req.query;
+        const { limit, userid, status, categorieid, niveau, search, all, libre } = req.query;
         const datas = await getDossier({ 
             userid, 
             limit, 
@@ -331,6 +331,7 @@ app.get("/getincident", async (req, res) => {
             categorieid, 
             niveau, 
             search, 
+            libre: libre || (status === "libre" || status === "libres" ? "true" : undefined),
             all: all || (!userid ? "true" : undefined) 
         });
         res.json({...datas});
@@ -399,6 +400,211 @@ app.post("/updateprofile", async (req, res) => {
 app.post("/fonctionnalite", (req, res, next) => addFonctionnalites(req, res, next))
 app.get("/fonctionnalites", (req, res, next) => getFonctionnalites(req, res, next))
 app.put("/fonctionnalite", (req, res, next) => updateFonctionnalites(req, res, next))
+
+// ---------------- Notifications In-App & Push Test ----------------
+// Initialisation de la table notifications si non existante
+pool.query(`
+    CREATE TABLE IF NOT EXISTS public.notifications (
+        id SERIAL PRIMARY KEY,
+        userid INTEGER,
+        title VARCHAR(255),
+        body TEXT,
+        url VARCHAR(255),
+        lu BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+`).catch(err => console.log("Init notifications table note:", err.message));
+
+app.get("/notifications/:userid", async (req, res) => {
+    try {
+        const { userid } = req.params;
+        const result = await pool.query(
+            "SELECT * FROM notifications WHERE userid = $1 ORDER BY id DESC LIMIT 30",
+            [parseInt(userid, 10)]
+        );
+        res.json({ status: "success", success: true, data: result.rows });
+    } catch (error) {
+        console.log("Error in /notifications/:userid:", error);
+        res.json({ status: "success", success: true, data: [] });
+    }
+});
+
+app.post("/notifications/mark-read", async (req, res) => {
+    try {
+        const { userid, notificationid } = req.body;
+        if (notificationid) {
+            await pool.query("UPDATE notifications SET lu = true WHERE id = $1", [notificationid]);
+        } else if (userid) {
+            await pool.query("UPDATE notifications SET lu = true WHERE userid = $1", [userid]);
+        }
+        res.json({ status: "success", success: true, message: "Notifications marquées comme lues" });
+    } catch (error) {
+        console.log("Error in /notifications/mark-read:", error);
+        res.status(500).json({ status: "error", success: false, message: error.message });
+    }
+});
+
+app.post("/notification/test-push", async (req, res) => {
+    try {
+        const { userid } = req.body;
+        const clienturl = process.env.CLIENT_URL || "http://localhost:3000";
+        await SendNotification({
+            userid: parseInt(userid, 10),
+            title: "🔔 Test de notification Push",
+            body: "Les notifications push HAKI SYSTEM sont correctement configurées et fonctionnelles !",
+            url: `${clienturl}/home/dashboard`
+        });
+        // Ajouter aussi en in-app
+        try {
+            await pool.query(
+                "INSERT INTO notifications (userid, title, body, url, lu, created_at) VALUES ($1, $2, $3, $4, false, CURRENT_TIMESTAMP)",
+                [parseInt(userid, 10), "🔔 Test de notification Push", "Les notifications push HAKI SYSTEM sont correctement configurées !", `${clienturl}/home/dashboard`]
+            );
+        } catch(e){}
+        res.json({ status: "success", success: true, message: "Notification de test envoyée avec succès !" });
+    } catch (error) {
+        console.log("Error in /notification/test-push:", error);
+        res.status(500).json({ status: "error", success: false, message: error.message });
+    }
+});
+
+// ---------------- Centre des Mails & Modèles ----------------
+app.get("/mail/config", async (req, res) => {
+    const hasApiKey = !!process.env.RESEND_API_KEY;
+    res.json({
+        success: true,
+        status: "success",
+        data: {
+            configured: hasApiKey,
+            mode: hasApiKey ? "production (Resend API)" : "simulation (mode développement)",
+            fromEmail: process.env.NO_REPLAY_MAIL || "HAKI SYSTEM <no-reply@hakisystem.net>",
+            supportedTemplates: [
+                { id: "confirm", name: "Confirmation de compte", description: "Code de vérification à 6 chiffres envoyé lors de l'inscription" },
+                { id: "confirm_org", name: "Invitation Organisation", description: "Lien d'invitation pour rejoindre une structure" },
+                { id: "alert_domaine", name: "Alerte nouveau signalement (Domaine)", description: "Notifie automatiquement les organisations dont le domaine correspond au signalement" },
+                { id: "status_org", name: "Statut Organisation", description: "Mise à jour du statut d'une organisation (validée, suspendue)" }
+            ]
+        }
+    });
+});
+
+app.post("/mail/test", async (req, res) => {
+    try {
+        const { to, template, nom, organisation, code } = req.body;
+        if (!to) {
+            return res.status(400).json({ success: false, message: "Adresse email requise" });
+        }
+        let htmlContent = "";
+        let subject = "Test HAKI SYSTEM";
+
+        if (template === "confirm_org") {
+            subject = `Invitation à rejoindre ${organisation || "l'Organisation"}`;
+            htmlContent = ConfirmOrgMail(nom || "Partenaire", to, code || "123456", organisation || "Organisation Test");
+        } else if (template === "alert_domaine") {
+            subject = "[Alerte] Nouveau signalement dans votre domaine";
+            htmlContent = ConfirmMail(nom || "Responsable de veille", code || "HSY-TEST");
+        } else if (template === "status_org") {
+            subject = "Mise à jour de votre statut organisation";
+            htmlContent = ConfirmMail(nom || "Directeur", "ACTIF");
+        } else {
+            subject = "Code de confirmation de compte";
+            htmlContent = ConfirmMail(nom || "Utilisateur Test", code || "789123");
+        }
+
+        const result = await sendMail({ to, subject, text: htmlContent });
+        res.json({ ...result, message: result.simulated ? "Email simulé dans la console (en dev)" : "Email envoyé avec succès !" });
+    } catch (error) {
+        console.log("Error in /mail/test:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ---------------- Gestion des Catégories d'incidents / Domaines ----------------
+app.put("/categorie_incident/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { designation, niveau, etat } = req.body;
+        const result = await pool.query(
+            "UPDATE categorie_incident SET designation = COALESCE($1, designation), niveau = COALESCE($2, niveau), etat = COALESCE($3, etat) WHERE categorie_id = $4 RETURNING *",
+            [designation, niveau, etat, parseInt(id, 10)]
+        );
+        res.json({ success: true, status: "success", message: "Catégorie mise à jour avec succès", data: result.rows[0] });
+    } catch (error) {
+        console.log("Error in PUT /categorie_incident/:id:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.post("/categorie_incident/:id/toggle", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const current = await pool.query("SELECT etat FROM categorie_incident WHERE categorie_id = $1", [parseInt(id, 10)]);
+        const newEtat = current.rows[0]?.etat === "actif" ? "inactif" : "actif";
+        const result = await pool.query(
+            "UPDATE categorie_incident SET etat = $1 WHERE categorie_id = $2 RETURNING *",
+            [newEtat, parseInt(id, 10)]
+        );
+        res.json({ success: true, status: "success", message: `Catégorie ${newEtat === 'actif' ? 'activée' : 'désactivée'}`, data: result.rows[0] });
+    } catch (error) {
+        console.log("Error in toggle /categorie_incident:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ---------------- Admin Global Stats ----------------
+app.get("/admin/stats", async (req, res) => {
+    try {
+        const orgRes = await pool.query(`
+            SELECT 
+                COUNT(*) AS total,
+                COUNT(CASE WHEN status = 'actif' THEN 1 END) AS actives,
+                COUNT(CASE WHEN status = 'en attente' OR status IS NULL THEN 1 END) AS en_attente,
+                COUNT(CASE WHEN status = 'refuse' OR status = 'désactivé' THEN 1 END) AS suspendues
+            FROM organisation
+        `);
+
+        const userRes = await pool.query(`
+            SELECT 
+                COUNT(*) AS total,
+                COUNT(CASE WHEN etat = 'actif' THEN 1 END) AS actifs,
+                COUNT(CASE WHEN etat = 'en attente' THEN 1 END) AS en_attente,
+                COUNT(CASE WHEN type = 'main' THEN 1 END) AS admin_principaux,
+                COUNT(CASE WHEN type = 'second' THEN 1 END) AS membres_org
+            FROM utilisateurs
+        `);
+
+        const incidentRes = await pool.query(`
+            SELECT 
+                COUNT(*) AS total,
+                COUNT(CASE WHEN NOT EXISTS (SELECT 1 FROM attribuerdossier ad WHERE ad.dossierid = inc.id_incident AND ad.status NOT IN ('refusé','abandonné')) THEN 1 END) AS libres,
+                COUNT(CASE WHEN EXISTS (SELECT 1 FROM attribuerdossier ad WHERE ad.dossierid = inc.id_incident AND ad.status IN ('en cours','accepté')) THEN 1 END) AS en_cours,
+                COUNT(CASE WHEN EXISTS (SELECT 1 FROM attribuerdossier ad WHERE ad.dossierid = inc.id_incident AND ad.status IN ('résolu','cloturé')) THEN 1 END) AS resolus
+            FROM incident inc
+        `);
+
+        const catRes = await pool.query(`
+            SELECT cat.categorie_id, cat.designation, cat.niveau, cat.etat, COUNT(inc.id_incident) AS incidents_count
+            FROM categorie_incident cat
+            LEFT JOIN incident inc ON cat.categorie_id = inc.categorieid
+            GROUP BY cat.categorie_id, cat.designation, cat.niveau, cat.etat
+            ORDER BY incidents_count DESC
+        `);
+
+        res.json({
+            success: true,
+            status: "success",
+            data: {
+                organisations: orgRes.rows[0],
+                utilisateurs: userRes.rows[0],
+                incidents: incidentRes.rows[0],
+                categories: catRes.rows
+            }
+        });
+    } catch (error) {
+        console.log("Error in /admin/stats:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

@@ -1744,3 +1744,147 @@ input:checked+.slider:before {
     width: 85%;
   }
 }
+
+/* =========================================
+   9. THEME SOMBRE (DARK MODE) & ACCENTS
+   ========================================= */
+body.dark-theme {
+  --bg-body: #090d16;
+  --bg-card: #151d30;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-color: #27354f;
+
+  --status-new-bg: #1e3a5f;
+  --status-new-text: #93c5fd;
+  --status-analysis-bg: #451a03;
+  --status-analysis-text: #fcd34d;
+  --status-oriented-bg: #064e3b;
+  --status-oriented-text: #6ee7b7;
+  --status-closed-bg: #1e293b;
+  --status-closed-text: #94a3b8;
+  --status-high-bg: #450a0a;
+  --status-high-text: #fca5a5;
+}
+
+body.dark-theme .card,
+body.dark-theme .card-stat,
+body.dark-theme .modal-dialog,
+body.dark-theme .data-table {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+body.dark-theme .data-table thead th {
+  background-color: #101726;
+  color: #cbd5e1;
+  border-bottom: 2px solid var(--border-color);
+}
+
+body.dark-theme .data-table tbody tr {
+  border-bottom-color: var(--border-color);
+}
+
+body.dark-theme .data-table tbody tr:hover {
+  background-color: #1a243c;
+}
+
+body.dark-theme .header,
+body.dark-theme .headersimple {
+  background-color: var(--bg-card);
+  border-bottom-color: var(--border-color);
+}
+
+body.dark-theme .header input[type="search"],
+body.dark-theme .form-control,
+body.dark-theme input[type="text"],
+body.dark-theme input[type="email"],
+body.dark-theme input[type="password"],
+body.dark-theme input[type="tel"],
+body.dark-theme select,
+body.dark-theme textarea {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+body.dark-theme .header input[type="search"]:focus,
+body.dark-theme .form-control:focus,
+body.dark-theme input:focus,
+body.dark-theme select:focus,
+body.dark-theme textarea:focus {
+  border-color: var(--primary);
+  background-color: #131c33;
+}
+
+body.dark-theme .chip {
+  background-color: #1e293b;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+
+body.dark-theme .chip.active {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+/* =========================================
+   10. ANIMATIONS & POLISH NOTIFICATIONS
+   ========================================= */
+@keyframes badgePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.notification-badge-pulse {
+  animation: badgePulse 2s infinite ease-in-out;
+}
+
+.notif-popover {
+  animation: popoverFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

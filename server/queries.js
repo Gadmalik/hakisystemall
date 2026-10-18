@@ -104,8 +104,8 @@ export async function getDossier({userid, limit, status, categorieid, niveau, se
 
             if (status) {
                 const s = status.toLowerCase();
-                if (s === 'nouveau' || s === 'nouveaux' || s === 'unassigned') {
-                    whereClauses.push("(ad.status IS NULL OR ad.status = 'nouveau')");
+                if (s === 'nouveau' || s === 'nouveaux' || s === 'unassigned' || s === 'libre' || s === 'libres') {
+                    whereClauses.push("NOT EXISTS (SELECT 1 FROM attribuerdossier ad2 WHERE ad2.dossierid = inc.id_incident AND ad2.status NOT IN ('refusé', 'abandonné'))");
                 } else if (s === 'en cours' || s === 'encours' || s === 'analyse') {
                     whereClauses.push("(ad.status = 'en cours' OR ad.status = 'en attente' OR ad.status = 'accepté')");
                 } else if (s === 'résolu' || s === 'resolu' || s === 'cloturé' || s === 'cloture') {
@@ -182,7 +182,14 @@ export async function getDossier({userid, limit, status, categorieid, niveau, se
 
 export async function setEtatAttribut({attribuerid, status}){
     try{
-        const reponse = await pool.query("UPDATE attribuerdossier SET status=$1 WHERE attribuerid=$2", [status, attribuerid]);
+        if (status === 'abandonné' || status === 'abandonne' || status === 'abandon') {
+            return {
+                status: "error", 
+                code: "cannot_abandon", 
+                message: "Un signalement pris en charge / suivi ne peut pas être abandonné. Vous devez le classer comme résolu ou l'orienter vers une structure compétente."
+            };
+        }
+        const reponse = await pool.query("UPDATE attribuerdossier SET status=$1 WHERE attribuerid=$2 RETURNING *", [status, attribuerid]);
         return {status:"success", code:"success", data: reponse.rows[0]};
     }catch(error){
         console.log(error);

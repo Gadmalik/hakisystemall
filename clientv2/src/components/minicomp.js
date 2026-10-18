@@ -121,3 +121,89 @@ export function ChatSuggestion({icone, title, onClick}){
                 <span>{title}</span>
             </button>)
 }
+
+export function StatCard({ label, value, sub, icone, color = "primary", onClick }) {
+    return (
+        <div className={`kpi-card ${onClick ? "clickable" : ""}`} onClick={onClick} style={{ cursor: onClick ? "pointer" : "default" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                    <div className="label">{label}</div>
+                    <div className="value">{value}</div>
+                    {sub && <div className="sub">{sub}</div>}
+                </div>
+                {icone && (
+                    <div style={{
+                        width: "44px",
+                        height: "44px",
+                        borderRadius: "12px",
+                        background: color === "danger" ? "#fee2e2" : color === "warning" ? "#fef3c7" : color === "success" ? "#dcfce7" : "#e0e7ff",
+                        color: color === "danger" ? "#dc2626" : color === "warning" ? "#d97706" : color === "success" ? "#16a34a" : "var(--primary)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "1.2rem"
+                    }}>
+                        <i className={`fa-solid fa-${icone}`}></i>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+export function Modal({ isOpen, onClose, title, children, maxWidth = "550px" }) {
+    if (!isOpen) return null;
+    return (
+        <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "20px"
+        }} onClick={onClose}>
+            <div style={{
+                background: "white",
+                borderRadius: "var(--radius-lg)",
+                width: "100%",
+                maxWidth: maxWidth,
+                maxHeight: "90vh",
+                overflowY: "auto",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                border: "1px solid var(--border-color)",
+                padding: "24px"
+            }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px" }}>
+                    <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "var(--text-main)" }}>{title}</h3>
+                    <button type="button" onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", color: "var(--text-muted)", padding: "4px" }}>
+                        <i className="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                {children}
+            </div>
+        </div>
+    );
+}
+
+export function EmptyState({ icone = "inbox", title, message, actionLabel, onAction }) {
+    return (
+        <div style={{ padding: "40px 20px", textAlign: "center", background: "white", borderRadius: "var(--radius-md)", border: "1px dashed var(--border-color)", margin: "15px 0" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "#f1f5f9", color: "var(--text-muted)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: "1.5rem" }}>
+                <i className={`fa-solid fa-${icone}`}></i>
+            </div>
+            <h4 style={{ margin: "0 0 6px 0", color: "var(--text-main)" }}>{title}</h4>
+            <p style={{ margin: "0 auto 16px", color: "var(--text-muted)", fontSize: "0.88rem", maxWidth: "400px" }}>{message}</p>
+            {actionLabel && onAction && (
+                <button type="button" className="btn btn-primary btn-sm" onClick={onAction}>
+                    {actionLabel}
+                </button>
+            )}
+        </div>
+    );
+}

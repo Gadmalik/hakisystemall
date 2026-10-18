@@ -1,6 +1,8 @@
 import pool from "../db.js";
 import { SendNotification } from "./notification.js";
 import { getUtilisateursByDomaines } from "./organisation.js";
+import { sendMail } from "./mail.js";
+import { NewIncidentAlertMail } from "./mailsModel.js";
 
 export async function AddSignalement(data){
     try{
@@ -22,19 +24,75 @@ export async function AddSignalement(data){
             [data.categorieid, data.lieu, data.description, data.date, data.date_create, data.userid || null, "actif", codeunique, data.contact || null, data.genre || null, data.trancheage || null, formattedAnnexes]
         );
 
+        const newIncident = reponse.rows[0];
+
         try {
-            const utilisateurs = await getUtilisateursByDomaines({type: data.type || data.categorieid});
+            // Notifications push et alertes envoyées aux organisations ayant pour domaine la catégorie du signalement
+            const catId = data.categorieid || data.type;
+            const utilisateurs = await getUtilisateursByDomaines({ type: catId });
+
             if (utilisateurs && utilisateurs.data && Array.isArray(utilisateurs.data) && utilisateurs.data.length > 0) {
-                const catName = utilisateurs.data[0]?.designation || "nouveau";
-                utilisateurs.data.forEach(async user => {
-                    await SendNotification({userid: user.userid, body: `Un nouveau signalement de catégorie : ${catName} a été ajouté`, title: "Nouveau signalement", url: clienturl + "/home/signalement"});
-                });
+                const catName = utilisateurs.data[0]?.designation || "signalement";
+                const notifiedEmails = new Set();
+                const notifiedUserIds = new Set();
+
+                for (const user of utilisateurs.data) {
+                    if (user.userid && !notifiedUserIds.has(user.userid)) {
+                        notifiedUserIds.add(user.userid);
+
+                        // 1. Notification Push Web
+                        const pushTitle = `🚨 Nouveau signalement: ${catName}`;
+                        const pushBody = `Un nouveau signalement (#${codeunique}) dans votre domaine d'intervention a été signalé à ${data.lieu || 'lieu non précisé'}.`;
+                        const targetUrl = `${clienturl}/home/signalement/${newIncident.id_incident}`;
+
+                        await SendNotification({
+                            userid: user.userid,
+                            title: pushTitle,
+                            body: pushBody,
+                            url: targetUrl
+                        });
+
+                        // 2. Notification In-App enregistrée en base
+                        try {
+                            await pool.query(
+                                "INSERT INTO notifications (userid, title, body, url, lu, created_at) VALUES ($1, $2, $3, $4, false, CURRENT_TIMESTAMP)",
+                                [user.userid, pushTitle, pushBody, targetUrl]
+                            );
+                        } catch (inAppErr) {
+                            // Si la table notifications n'existe pas encore ou erreur légère
+                            console.log("In-app notification save note:", inAppErr?.message);
+                        }
+                    }
+
+                    // 3. Notification Email à l'organisation
+                    const targetEmail = user.email_org || user.email;
+                    if (targetEmail && !notifiedEmails.has(targetEmail)) {
+                        notifiedEmails.add(targetEmail);
+                        try {
+                            const emailHtml = NewIncidentAlertMail({
+                                nomOrganisation: user.organisation_nom || "Organisation partenaire",
+                                codeUnique: codeunique,
+                                categorie: catName,
+                                lieu: data.lieu,
+                                dateIncident: data.date,
+                                clientUrl: clienturl
+                            });
+                            await sendMail({
+                                to: targetEmail,
+                                subject: `[HAKI SYSTEM] Nouveau signalement dans votre domaine : ${catName}`,
+                                text: emailHtml
+                            });
+                        } catch (mailErr) {
+                            console.log("Organisation email alert note:", mailErr?.message);
+                        }
+                    }
+                }
             }
         } catch (notifErr) {
-            console.log("Notification skipped:", notifErr?.message);
+            console.log("Notification dispatch note:", notifErr?.message);
         }
 
-        return {data: reponse.rows[0], status:"success", code:"success", success: true};
+        return {data: newIncident, status:"success", code:"success", success: true};
     }catch(error){
         console.log("Error AddSignalement:", error);
         return {message:"Une erreur s'est produite !", status:"error", code:"", error: error, success: false};

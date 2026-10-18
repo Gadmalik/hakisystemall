@@ -126,10 +126,43 @@ export async function verifDomaineAssigner(data){
 
 export async function getUtilisateursByDomaines(data){
     try{
-        const reponse = await pool.query("SELECT u.*, ci.designation FROM utilisateurs u JOIN assignerdomaine ad ON u.userid = ad.userid JOIN categorie_incident ci ON ad.categorie_id = ci.categorie_id WHERE ad.status='actif' AND u.etat='actif' AND ci.categorie_id = $1", [data.type]);
-        return {data: reponse.rows, status:"success", code:"success"};
+        const categorieId = parseInt(data.type || data.categorieid, 10);
+        const query = `
+            SELECT DISTINCT 
+                u.userid, 
+                u.nom, 
+                u.prenom, 
+                u.email, 
+                u.phone,
+                ci.categorie_id,
+                ci.designation AS designation,
+                org.organisationid,
+                org.designation AS organisation_nom,
+                org.email_org
+            FROM assignerdomaine ad
+            JOIN categorie_incident ci ON ad.categorie_id = ci.categorie_id
+            LEFT JOIN organisation org ON ad.organisationid = org.organisationid
+            JOIN utilisateurs u ON (
+                u.userid = ad.userid 
+                OR (org.userid IS NOT NULL AND u.userid = org.userid)
+                OR u.userid IN (
+                    SELECT ut.userid FROM utilisateurs ut 
+                    JOIN categorieutilisateurorg cuo ON ut.categorieutilisateurid = cuo.categorieutilisateurorgid 
+                    WHERE cuo.organisationid = ad.organisationid AND ut.etat = 'actif'
+                )
+                OR u.userid IN (
+                    SELECT acuo.userid FROM assignercategorieutilisateurorg acuo 
+                    WHERE acuo.organisationid = ad.organisationid AND acuo.status = 'actif'
+                )
+            )
+            WHERE ad.status = 'actif' 
+              AND ci.categorie_id = $1 
+              AND u.etat = 'actif'
+        `;
+        const reponse = await pool.query(query, [categorieId]);
+        return {data: reponse.rows, status:"success", code:"success", success: true};
     }catch(error){
-        console.log(error);
-        return {message:"Une erreur s'est produite !", status:"error", code:"", error: error};
+        console.log("Error in getUtilisateursByDomaines:", error);
+        return {message:"Une erreur s'est produite !", status:"error", code:"", error: error, data: []};
     }
 }
