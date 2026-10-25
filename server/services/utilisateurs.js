@@ -30,7 +30,7 @@ export async function AddUtilisateur(data){
             config = false;
         }
         const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, mdp, code, etat, categorieutilisateurid, adresse,date_create, config) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.mdp ? await bcrypt.hash(data.mdp, 10) : null, data.code, etat, data.categorieutilisateurid, data.adresse, data.date_create, config]);
-        return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true, data:etat == "actif" ? user.rows[0] : {}};
+        return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true, data:verif_categorie?.data?.isDefault ? user.rows[0] : {}};
 
     }catch(err){
         console.log(err);

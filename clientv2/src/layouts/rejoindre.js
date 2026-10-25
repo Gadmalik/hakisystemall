@@ -475,7 +475,7 @@ export function Rejoindre() {
                 </ul>
             </div>
             
-                <div className="auth-form" style={{overflowY: "auto", padding: "10px"}}>
+                <div className="auth-form" style={{overflowY: "auto", padding: "10px",maxHeight:"100vh"}}>
                     <div  style={{maxWidth: "550px", background: "white", padding: "24px", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-color)", margin:"auto"}}>
                     <h1 style={{textAlign: "center"}}>Créer un compte</h1>
                     <p style={{textAlign: "center", marginTop: "4px", fontSize: "0.9rem", color: "var(--text-muted)"}}>Soumetez vos information pour rejoindre.</p>

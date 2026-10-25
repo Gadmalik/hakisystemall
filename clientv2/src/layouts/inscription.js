@@ -86,7 +86,7 @@ export function Inscription() {
                     });
                     const data_user = await resp_user.json();
                     if(data_user.status === "success"){
-                        console.log(data_user.data);
+                        localStorage.setItem("userinfo", JSON.stringify(data_user.data));
                         localStorage.setItem("user", JSON.stringify(data_user.data));
                         navigate("/home");
                     }

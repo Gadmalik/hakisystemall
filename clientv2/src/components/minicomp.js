@@ -207,3 +207,114 @@ export function EmptyState({ icone = "inbox", title, message, actionLabel, onAct
         </div>
     );
 }
+
+export function FilterBar({ searchValue, onSearchChange, searchPlaceholder, tabs, activeTab, onTabChange, selectedNiveau, onNiveauChange, onExport, onReset, viewMode, onViewModeChange }) {
+    return (
+        <div style={{
+            background: "white",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--border-color)",
+            marginBottom: "16px",
+            padding: "8px 12px",
+            display: "flex",
+            gap: "8px",
+            flexWrap: "wrap",
+            alignItems: "center"
+        }}>
+
+            {/* Search */}
+            <div style={{ flex: "1 1 250px" }}>
+                <div style={{ position: "relative" }}>
+                    <i className="fa-solid fa-search" style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+                    <input
+                        type="text"
+                        value={searchValue}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        placeholder={searchPlaceholder}
+                        style={{ width: "100%", padding: "8px 10px 8px 30px", borderRadius: "6px", border: "1px solid var(--border-color)", fontSize: "0.8rem" }}
+                    />
+                </div>
+            </div>
+
+            {/* Tabs */}
+            {tabs && tabs.map((tab) => (
+                <button
+                    key={tab.id}
+                    onClick={() => onTabChange(tab.id)}
+                    style={{
+                        background: activeTab === tab.id ? "var(--primary)" : "#f3f4f6",
+                        color: activeTab === tab.id ? "white" : "var(--text-main)",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        border: "none",
+                        fontSize: "0.75rem",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px"
+                    }}
+                >
+                    <i className={`fa-solid fa-${tab.icon}`} />
+                    <span>{tab.label}</span>
+                    {tab.count !== undefined && (
+                        <span style={{ fontWeight: 700, fontSize: "0.7rem", background: activeTab === tab.id ? "rgba(255,255,255,0.2)" : "rgba(15,23,42,0.1)", padding: "2px 6px", borderRadius: "999px" }}>
+                            {tab.count}
+                        </span>
+                    )}
+                </button>
+            ))}
+
+            {/* Niveau */}
+            <div style={{ flex: "0 0 auto" }}>
+                <select
+                    value={selectedNiveau}
+                    onChange={(e) => onNiveauChange(e.target.value)}
+                    style={{ padding: "8px 10px", borderRadius: "6px", border: "1px solid var(--border-color)", fontSize: "0.8rem" }}
+                >
+                    <option value="">Toutes les priorités</option>
+                    <option value="Urgent">Urgent</option>
+                    <option value="Important">Important</option>
+                    <option value="Moyen">Moyen</option>
+                </select>
+            </div>
+
+            {/* Export */}
+            {onExport && (
+                <button onClick={onExport} style={{ padding: "8px 12px", borderRadius: "6px", border: "none", background: "var(--success)", color: "white", cursor: "pointer", fontSize: "0.8rem" }}>
+                    <i className="fa-solid fa-download" style={{ marginRight: "4px" }} />
+                    Exporter CSV
+                </button>
+            )}
+
+            {/* Reset */}
+            {(searchValue.trim() || selectedNiveau || activeTab !== "all") && (
+                <button onClick={onReset} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "transparent", cursor: "pointer", fontSize: "0.8rem" }}>
+                    <i className="fa-solid fa-undo" style={{ marginRight: "4px" }} />
+                    Réinitialiser
+                </button>
+            )}
+
+            {/* View mode */}
+            <div style={{ marginLeft: "auto" }}>
+                <button onClick={() => onViewModeChange("table")} style={{ padding: "8px", borderRadius: "6px", border: "none", background: viewMode === "table" ? "var(--primary)" : "transparent", color: viewMode === "table" ? "white" : "var(--text-muted)", marginRight: "4px" }}>
+                    <i className="fa-solid fa-table" />
+                </button>
+                <button onClick={() => onViewModeChange("grid")} style={{ padding: "8px", borderRadius: "6px", border: "none", background: viewMode === "grid" ? "var(--primary)" : "transparent", color: viewMode === "grid" ? "white" : "var(--text-muted)" }}>
+                    <i className="fa-solid fa-th-large" />
+                </button>
+            </div>
+        </div>
+    );
+}
+
+export function exportToCSV(data, filename){
+    const csv = data.map(row => Object.values(row).map(value => `"${value}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}

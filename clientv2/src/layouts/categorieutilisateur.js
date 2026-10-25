@@ -99,7 +99,7 @@ export function CategorieUtilisateur({}) {
         setError({});
         setActionLoader(true);
         try {
-            const endpoint = activeCategorieId ? `${link}/update_categorieutilisateur` : `${link}/categorieutilisateur`;
+            const endpoint = activeCategorieId ? `${link}/categorieutilisateur` : `${link}/categorieutilisateur`;
             const method = activeCategorieId ? "PUT" : "POST";
 
             const res = await fetch(endpoint, {

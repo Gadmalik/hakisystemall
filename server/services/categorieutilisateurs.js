@@ -127,9 +127,9 @@ export async function getFonctionnalitesByCategorieutilisateurs(req, res){
 
 export async function updateCatUtilisateur(req, res){
     try {
-        const {categorieutilisateurid, designation, description, fonctionnalites} = req.body;
-        const query = "UPDATE categorieutilisateur SET designation = $1, description = $2 WHERE categorieutilisateurid = $3 RETURNING *";
-        const result = await pool.query(query, [designation, description, categorieutilisateurid]);
+        const {categorieutilisateurid, designation, description, fonctionnalites, organisation, confirm} = req.body;
+        const query = "UPDATE categorieutilisateur SET designation = $1, description = $2, organisation = $3, confirm=$4 WHERE categorieutilisateurid = $5 RETURNING *";
+        const result = await pool.query(query, [designation, description, organisation, confirm, categorieutilisateurid]);
         if(fonctionnalites.length > 0){
             // desactiver toute les ancienne
             await pool.query("UPDATE assignerfonctionnalites SET status = 'inactif' WHERE categorieutilisateurid = $1", [categorieutilisateurid]);

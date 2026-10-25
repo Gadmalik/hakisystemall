@@ -11,7 +11,7 @@ import { sendMail } from "./services/mail.js";
 import { AddSignalement, getIncidentById, getIncidentByUser, getIncidentOrienteByOrganisationId, getIncidentOrienteByUserId, getIncidentSuivieByUserId, getIncidentStats } from "./services/incident.js";
 import { SendNotification, SubscribeUser } from "./services/notification.js";
 import { actionOrganisations, addOrganisation, assignerdomaine, getOrganisation, getOrganisations, getTypeOrganisation } from "./services/organisation.js";
-import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, addCatUtilisateur, getcategorieutilisateurOrg, getCatUtilisateur, getDefaultCategorieUtilisateur, getFonctionnalitesByCategorieutilisateurs, getUtilisateursByOrganisationId } from "./services/categorieutilisateurs.js";
+import { addAssignerCategorieUtilisateur, addCategorieUtilisateurOrg, addCatUtilisateur, getcategorieutilisateurOrg, getCatUtilisateur, getDefaultCategorieUtilisateur, getFonctionnalitesByCategorieutilisateurs, getUtilisateursByOrganisationId, updateCatUtilisateur } from "./services/categorieutilisateurs.js";
 import { addFonctionnalites, getFonctionnalites, updateFonctionnalites } from "./services/fonctionnalites.js";
 
 // recréer __filename et __dirname
@@ -64,9 +64,9 @@ app.post("/user", async (req, res) => {
         const code = Math.floor(100000 + Math.random() * 900000);
         const textmail = ConfirmMail(`${nom} ${prenom}`, code);
         const result = await AddUtilisateur({nom, prenom, phone, email, username, categorieutilisateurid:categorie , mdp, adresse, date_create,code});
-        console.log(result);
         if(result.success && Object.keys(result.data).length < 1){
             const sendmail = await sendMail({to:email, subject:"Confirmation de votre compte", text:textmail});
+            console.log(sendmail);
             if(!sendmail.success){
                 res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: sendmail.error});
             }
@@ -138,6 +138,8 @@ app.get("/categorieutilisateur", async (req, res) => getCatUtilisateur(req, res)
 app.get("/getdefaultcategorieutilisateur", async (req, res) => getDefaultCategorieUtilisateur(req, res));
 
 app.post("/categorieutilisateur", async (req, res) => addCatUtilisateur(req, res));
+
+app.put("/categorieutilisateur", async (req, res) => updateCatUtilisateur(req, res));
 
 app.get("/getincidentorientebyorganisationid/:organisationid/:userid", async (req, res) => getIncidentOrienteByOrganisationId(req, res));
 

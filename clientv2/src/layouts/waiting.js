@@ -20,7 +20,7 @@ export function LandingPage({}){
             if (data.success) {
                 setInfos(data.data)
                 console.log(data.data)
-                if(data.data.status === "actif"){
+                if(data.data.etat === "actif"){
                     if(data.data.organisationid){
                         if(data.data.ogstatus === "actif"){
                             localStorage.setItem("userinfo", JSON.stringify(data.data));
@@ -52,13 +52,13 @@ export function LandingPage({}){
                 <div style={{textAlign: "center", marginBottom:" 24px"}}>
                     <h1 style={{fontSize: "1.5rem", marginBottom:" 8px"}}>Demande en cours de validation</h1>
                     <p style={{color: "var(--text-muted)", fontSize:" 0.9rem"}}>
-                        {user.nom} {user.prenoms}, votre demande a été reçue. Notre équipe l'examine et vous recevrez une confirmation par e-mail très bientôt.
+                        {user?.nom || "Utilisateur"} {user?.prenom || user?.prenoms || ""}, votre demande a été reçue. Notre équipe l'examine et vous recevrez une confirmation par e-mail très bientôt.
                     </p>
                 </div>
 
                 <div style={{textAlign: "center", marginBottom:" 24px"}}>
                     <span style={{fontSize: "0.85rem", padding: "6px 16px"}}>
-                        <i class="fa-solid fa-clock" style={{marginRight: "4px"}}></i>
+                        <i className="fa-solid fa-clock" style={{marginRight: "4px"}}></i>
                         En attente de validation
                     </span>
                 </div>
@@ -68,13 +68,13 @@ export function LandingPage({}){
                         Étapes de votre demande
                     </h4>
 
-                    <div class="timeline-step completed">
-                        <div class="timeline-icon">
-                            <i class="fa-solid fa-check"></i>
+                    <div className="timeline-step completed">
+                        <div className="timeline-icon">
+                            <i className="fa-solid fa-check"></i>
                         </div>
-                        <div class="timeline-content">
+                        <div className="timeline-content">
                             <strong>Demande soumise</strong>
-                            <span>Reçue le {user.created_at.split("T")[0]} à {user.created_at.split("T")[1].split(".")[0]}</span>
+                            <span>Reçue le {user?.created_at ? user.created_at.split("T")[0] : new Date().toLocaleDateString("fr-FR")}</span>
                         </div>
                     </div>
 

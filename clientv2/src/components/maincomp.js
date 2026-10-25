@@ -48,28 +48,26 @@ export function SideBar({ fonctionnalites }) {
                     />
                 )}
 
-                <div style={{ margin: "15px 0 5px 0", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "10px" }}>
+                <MenuItem
+                    icone="gear"
+                    title="Paramètres"
+                    active={location.pathname === "/home/parametres"}
+                    onClick={() => navigate("/home/parametres")}
+                />
+                {isAdmin && (
                     <MenuItem
-                        icone="gear"
-                        title="Paramètres"
-                        active={location.pathname === "/home/parametres"}
-                        onClick={() => navigate("/home/parametres")}
+                        icone="shield-halved"
+                        title="Administration"
+                        active={location.pathname.startsWith("/admin")}
+                        onClick={() => navigate("/admin")}
                     />
-                    {isAdmin && (
-                        <MenuItem
-                            icone="shield-halved"
-                            title="Administration"
-                            active={location.pathname.startsWith("/admin")}
-                            onClick={() => navigate("/admin")}
-                        />
-                    )}
-                    <MenuItem
-                        icone="arrow-right-from-bracket"
-                        title="Déconnexion"
-                        active={false}
-                        onClick={handleLogout}
-                    />
-                </div>
+                )}
+                <MenuItem
+                    icone="arrow-right-from-bracket"
+                    title="Déconnexion"
+                    active={false}
+                    onClick={handleLogout}
+                />
             </div>
         </nav>
     );
@@ -211,7 +209,7 @@ export function Header({ title, retour = false, onSearch }) {
     const isAdmin = user?.type === "admin" || user?.role?.toLowerCase()?.includes("admin") || user?.designation?.toLowerCase()?.includes("admin");
 
     return (
-        <header className="header" style={{ position: "relative" }}>
+        <header className="header">
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 {retour ? (
                     <button
@@ -247,139 +245,139 @@ export function Header({ title, retour = false, onSearch }) {
                     />
                 </div>
 
-                {/* Cloche de Notifications Push / In-App */}
-                <div ref={notifRef} style={{ position: "relative" }}>
-                    <button
-                        type="button"
-                        onClick={() => setShowNotifMenu(!showNotifMenu)}
-                        style={{
-                            position: "relative",
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "50%",
-                            border: "1px solid var(--border-color)",
-                            background: showNotifMenu ? "var(--status-new-bg)" : "white",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: showNotifMenu ? "var(--primary)" : "var(--text-muted)"
-                        }}
-                        title="Notifications"
-                    >
-                        <i className="fa-regular fa-bell" style={{ fontSize: "1.1rem" }}></i>
-                        {unreadCount > 0 && (
-                            <span
-                                className="notification-badge-pulse"
-                                style={{
-                                    position: "absolute",
-                                    top: "-2px",
-                                    right: "-2px",
-                                    background: "#ef4444",
-                                    color: "white",
-                                    fontSize: "0.68rem",
-                                    fontWeight: "700",
-                                    width: "18px",
-                                    height: "18px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    border: "2px solid white"
-                                }}
-                            >
-                                {unreadCount > 9 ? "9+" : unreadCount}
-                            </span>
-                        )}
-                    </button>
-
-                    {showNotifMenu && (
-                        <div
-                            className="notif-popover"
-                            style={{
-                                position: "absolute",
-                                right: 0,
-                                top: "48px",
-                                width: "340px",
-                                background: "var(--bg-card, white)",
-                                borderRadius: "var(--radius-md)",
-                                boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)",
-                                border: "1px solid var(--border-color)",
-                                zIndex: 1000,
-                                overflow: "hidden"
-                            }}
-                        >
-                            <div style={{
-                                padding: "12px 16px",
-                                borderBottom: "1px solid var(--border-color)",
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                background: "#f8fafc"
-                            }}>
-                                <strong style={{ fontSize: "0.9rem", color: "var(--text-main)" }}>
-                                    <i className="fa-solid fa-bell" style={{ color: "var(--primary)", marginRight: "6px" }}></i>
-                                    Notifications ({unreadCount} non lues)
-                                </strong>
-                                {unreadCount > 0 && (
-                                    <button
-                                        onClick={markAllAsRead}
-                                        style={{ background: "none", border: "none", color: "var(--primary)", fontSize: "0.75rem", cursor: "pointer", fontWeight: 600 }}
-                                    >
-                                        Tout marquer lu
-                                    </button>
-                                )}
-                            </div>
-
-                            <div style={{ maxHeight: "320px", overflowY: "auto" }}>
-                                {notifications.length > 0 ? (
-                                    notifications.map((notif) => (
-                                        <div
-                                            key={notif.id}
-                                            onClick={() => {
-                                                if (notif.url) {
-                                                    setShowNotifMenu(false);
-                                                    navigate(notif.url.replace("http://localhost:3000", "").replace("http://localhost:5001", ""));
-                                                }
-                                            }}
-                                            style={{
-                                                padding: "10px 14px",
-                                                borderBottom: "1px solid #f1f5f9",
-                                                background: notif.lu ? "white" : "#f0f4ff",
-                                                cursor: "pointer",
-                                                transition: "background 0.2s"
-                                            }}
-                                        >
-                                            <div style={{ fontSize: "0.82rem", fontWeight: notif.lu ? 500 : 700, color: "var(--text-main)" }}>
-                                                {notif.title}
-                                            </div>
-                                            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "3px" }}>
-                                                {notif.body}
-                                            </div>
-                                            <div style={{ fontSize: "0.68rem", color: "#94a3b8", marginTop: "4px" }}>
-                                                {notif.created_at ? new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Récemment"}
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div style={{ padding: "25px 15px", textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                                        <i className="fa-regular fa-bell-slash" style={{ fontSize: "1.5rem", display: "block", marginBottom: "8px", opacity: 0.5 }}></i>
-                                        Aucune notification pour l'instant
-                                    </div>
-                                )}
-                            </div>
-
-                            <div style={{ padding: "8px 14px", textAlign: "center", background: "#f8fafc", borderTop: "1px solid var(--border-color)" }}>
-                                <span onClick={() => { setShowNotifMenu(false); navigate("/home/parametres"); }} style={{ fontSize: "0.75rem", color: "var(--primary)", cursor: "pointer", fontWeight: 600 }}>
-                                    Configurer les alertes & push →
-                                </span>
-                            </div>
-                        </div>
-                    )}
-                </div>
 
                 {/* Profil & Menu Utilisateur */}
-                <div ref={profileRef} style={{ position: "relative" }}>
+                <div ref={profileRef} style={{ position: "relative" }} className="flex-row">
+                    {/* Cloche de Notifications Push / In-App */}
+                    <div ref={notifRef} style={{ position: "relative" }}>
+                        <button
+                            type="button"
+                            onClick={() => setShowNotifMenu(!showNotifMenu)}
+                            style={{
+                                position: "relative",
+                                width: "40px",
+                                height: "40px",
+                                borderRadius: "50%",
+                                border: "1px solid var(--border-color)",
+                                background: showNotifMenu ? "var(--status-new-bg)" : "white",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: showNotifMenu ? "var(--primary)" : "var(--text-muted)"
+                            }}
+                            title="Notifications"
+                        >
+                            <i className="fa-regular fa-bell" style={{ fontSize: "1.1rem" }}></i>
+                            {unreadCount > 0 && (
+                                <span
+                                    className="notification-badge-pulse"
+                                    style={{
+                                        position: "absolute",
+                                        top: "-2px",
+                                        right: "-2px",
+                                        background: "#ef4444",
+                                        color: "white",
+                                        fontSize: "0.68rem",
+                                        fontWeight: "700",
+                                        width: "18px",
+                                        height: "18px",
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        border: "2px solid white"
+                                    }}
+                                >
+                                    {unreadCount > 9 ? "9+" : unreadCount}
+                                </span>
+                            )}
+                        </button>
+
+                        {showNotifMenu && (
+                            <div
+                                className="notif-popover"
+                                style={{
+                                    position: "absolute",
+                                    right: 0,
+                                    top: "48px",
+                                    width: "340px",
+                                    background: "var(--bg-card, white)",
+                                    borderRadius: "var(--radius-md)",
+                                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)",
+                                    border: "1px solid var(--border-color)",
+                                    zIndex: 1000,
+                                    overflow: "hidden"
+                                }}
+                            >
+                                <div style={{
+                                    padding: "12px 16px",
+                                    borderBottom: "1px solid var(--border-color)",
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    background: "#f8fafc"
+                                }}>
+                                    <strong style={{ fontSize: "0.9rem", color: "var(--text-main)" }}>
+                                        <i className="fa-solid fa-bell" style={{ color: "var(--primary)", marginRight: "6px" }}></i>
+                                        Notifications ({unreadCount} non lues)
+                                    </strong>
+                                    {unreadCount > 0 && (
+                                        <button
+                                            onClick={markAllAsRead}
+                                            style={{ background: "none", border: "none", color: "var(--primary)", fontSize: "0.75rem", cursor: "pointer", fontWeight: 600 }}
+                                        >
+                                            Tout marquer lu
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div style={{ maxHeight: "320px", overflowY: "auto" }}>
+                                    {notifications.length > 0 ? (
+                                        notifications.map((notif) => (
+                                            <div
+                                                key={notif.id}
+                                                onClick={() => {
+                                                    if (notif.url) {
+                                                        setShowNotifMenu(false);
+                                                        navigate(notif.url.replace("http://localhost:3000", "").replace("http://localhost:5001", ""));
+                                                    }
+                                                }}
+                                                style={{
+                                                    padding: "10px 14px",
+                                                    borderBottom: "1px solid #f1f5f9",
+                                                    background: notif.lu ? "white" : "#f0f4ff",
+                                                    cursor: "pointer",
+                                                    transition: "background 0.2s"
+                                                }}
+                                            >
+                                                <div style={{ fontSize: "0.82rem", fontWeight: notif.lu ? 500 : 700, color: "var(--text-main)" }}>
+                                                    {notif.title}
+                                                </div>
+                                                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "3px" }}>
+                                                    {notif.body}
+                                                </div>
+                                                <div style={{ fontSize: "0.68rem", color: "#94a3b8", marginTop: "4px" }}>
+                                                    {notif.created_at ? new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Récemment"}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ padding: "25px 15px", textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                                            <i className="fa-regular fa-bell-slash" style={{ fontSize: "1.5rem", display: "block", marginBottom: "8px", opacity: 0.5 }}></i>
+                                            Aucune notification pour l'instant
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div style={{ padding: "8px 14px", textAlign: "center", background: "#f8fafc", borderTop: "1px solid var(--border-color)" }}>
+                                    <span onClick={() => { setShowNotifMenu(false); navigate("/home/parametres"); }} style={{ fontSize: "0.75rem", color: "var(--primary)", cursor: "pointer", fontWeight: 600 }}>
+                                        Configurer les alertes & push →
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     <div
                         onClick={() => setShowProfileMenu(!showProfileMenu)}
                         style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", padding: "4px 8px", borderRadius: "var(--radius-pill)", border: "1px solid transparent", transition: "all 0.2s" }}

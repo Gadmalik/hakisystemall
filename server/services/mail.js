@@ -19,6 +19,9 @@ export async function sendMail({to, subject, text}){
             to: to,
             subject: subject,
             html: text
+        }).catch((error) => {
+            console.error(`[Mail Error] Échec de l'envoi d'e-mail à ${to}:`, error?.message || error);
+            return { success: false, code: "mail_error", message: error?.message || "Échec d'envoi d'email", error };
         });
         console.log(`[Mail] E-mail envoyé avec succès à ${to} - ID:`, result?.data?.id || "ok");
         return { success: true, code: "success", message: "Mail sent successfully", id: result?.data?.id };
