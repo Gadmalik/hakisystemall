@@ -16,6 +16,7 @@ import { addFonctionnalites, getFonctionnalites, updateFonctionnalites } from ".
 
 // recréer __filename et __dirname
 const __filename = fileURLToPath(import.meta.url);
+const port = process.env.PORT
 const __dirname = path.dirname(__filename);
 const upload = multer({dest:"uploads"});
 const uploadlogo = multer({dest:"uploads/logo"});
@@ -759,7 +760,7 @@ app.get("/admin/stats", async (req, res) => {
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.listen(5001, () => {
-    console.log("Server is running on port 5001");
+app.listen(port, () => {
+    console.log("Server is running on port "+port);
 });
 
