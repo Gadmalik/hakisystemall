@@ -74,11 +74,12 @@ export async function AddSignalement(data){
                                 : (user.nom ? `${user.nom} ${user.prenom || ''}` : "Partenaire HAKI");
                             const emailHtml = NewIncidentAlertMail({
                                 nomOrganisation: recipientLabel,
-                                codeUnique: codeunique,
+                                codeUnique: newIncident.code_unique,
                                 categorie: catName,
                                 lieu: data.lieu,
                                 dateIncident: data.date,
-                                clientUrl: clienturl
+                                clientUrl: clienturl,
+                                id: newIncident.id_incident
                             });
                             await sendMail({
                                 to: targetEmail,

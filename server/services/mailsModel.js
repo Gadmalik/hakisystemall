@@ -165,7 +165,8 @@ export function ConfirmMail(noms, code) {
 }
 
 export function ConfirmOrgMail(noms, email, code, nomOrganisation) {
-    const confirmationLink = `http://localhost:3000/confirm-invitation/${encodeURIComponent(code)}/${encodeURIComponent(email)}`;
+    const url = process.env.CLIENT_URL_URL;
+    const confirmationLink = `${url}/confirm-invitation/${encodeURIComponent(code)}/${encodeURIComponent(email)}`;
 
     return `<!DOCTYPE html>
 <html lang="fr">
@@ -313,8 +314,8 @@ export function ConfirmOrgMail(noms, email, code, nomOrganisation) {
 </html>`;
 }
 
-export function NewIncidentAlertMail({ nomOrganisation, codeUnique, categorie, lieu, dateIncident, clientUrl }) {
-    const link = `${clientUrl || 'http://localhost:3000'}/home/signalement/${encodeURIComponent(codeUnique)}/code`;
+export function NewIncidentAlertMail({ nomOrganisation, codeUnique, categorie, lieu, dateIncident, clientUrl, id }) {
+    const link = `${clientUrl || 'http://localhost:3000'}/home/signalement/${encodeURIComponent(id)}/code`;
     return `<!DOCTYPE html>
 <html lang="fr">
 <head>

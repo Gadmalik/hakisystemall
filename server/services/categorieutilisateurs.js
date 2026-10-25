@@ -71,16 +71,15 @@ export async function getUtilisateursByOrganisationId(data){
 
 export async function addCatUtilisateur(req, res ){
     try {
-        const {designation, description, fonctionnalites} = req.body;
-        const query = "INSERT INTO categorieutilisateur (designation, description, status) VALUES ($1, $2, 'actif') RETURNING *";
-        const result = await pool.query(query, [designation, description]);
+        const {designation, description, fonctionnalites = [], organisation = false, confirm = false, isadmin = false} = req.body;
+        const query = "INSERT INTO categorieutilisateur (designation, description, organisation, confirm, isadmin, status) VALUES ($1, $2, $3, $4, $5, 'actif') RETURNING *";
+        const result = await pool.query(query, [designation, description, !!organisation, !!confirm, isadmin === true || isadmin === 'true']);
         const categorieutilisateurid = result.rows[0].categorieutilisateurid;
-        if(fonctionnalites.length > 0){
-            // desactiver toute les ancienne
-            fonctionnalites.forEach(async fonctionnalite => {
-                const query = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, status) VALUES ($1, $2, 'actif')";
-                await pool.query(query, [categorieutilisateurid, fonctionnalite]);
-            });
+        if(Array.isArray(fonctionnalites) && fonctionnalites.length > 0){
+            for (const fonctionnalite of fonctionnalites) {
+                const qInsert = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, compte, status) VALUES ($1, $2, 'main', 'actif')";
+                await pool.query(qInsert, [categorieutilisateurid, fonctionnalite]);
+            }
         }
         return res.json({status: "success", success: true, message: "Categorie utilisateur ajoutée avec succès !", data: result.rows[0]});
     } catch (error) {
@@ -92,9 +91,9 @@ export async function addCatUtilisateur(req, res ){
 
 export async function assignerFonctionnalites(req, res ){
     try {
-        const {categorieutilisateurid, fonctionnaliteid} = req.body;
-        const query = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, status) VALUES ($1, $2, 'actif')";
-        const result = await pool.query(query, [categorieutilisateurid, fonctionnaliteid]);
+        const {categorieutilisateurid, fonctionnaliteid, compte = 'main'} = req.body;
+        const query = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, compte, status) VALUES ($1, $2, $3, 'actif')";
+        const result = await pool.query(query, [categorieutilisateurid, fonctionnaliteid, compte]);
         return {status: "success", success: true, message: "Fonctionnalité assignée avec succès !"};
     } catch (error) {
         console.log(error);
@@ -104,7 +103,7 @@ export async function assignerFonctionnalites(req, res ){
 
 export async function getCatUtilisateur(req, res ){
     try {
-        const query = "SELECT * FROM categorieutilisateur WHERE status = 'actif'";
+        const query = "SELECT * FROM categorieutilisateur WHERE status = 'actif' ORDER BY categorieutilisateurid ASC";
         const result = await pool.query(query);
         res.json({status: "success", success: true, data: result.rows});
     } catch (error) {
@@ -116,8 +115,17 @@ export async function getCatUtilisateur(req, res ){
 export async function getFonctionnalitesByCategorieutilisateurs(req, res){
     try {
         const {categorieutilisateurid, type} = req.params;
-        const query = "SELECT * FROM assignerfonctionnalites af JOIN fonctionnalites f ON af.fonctionnaliteid = f.fonctionnaliteid WHERE af.categorieutilisateurid = $1 AND af.compte = $2 AND af.status = 'actif'";
-        const result = await pool.query(query, [categorieutilisateurid, type]);
+        const targetCompte = type === "second" ? "second" : "main";
+        const query = `
+            SELECT f.*, af.assignerfonctionnalitesid, af.status AS af_status
+            FROM assignerfonctionnalites af 
+            JOIN fonctionnalites f ON af.fonctionnaliteid = f.fonctionnaliteid 
+            WHERE af.categorieutilisateurid = $1 
+              AND (af.compte = $2 OR (af.compte IS NULL AND $2 = 'main')) 
+              AND af.status = 'actif'
+            ORDER BY f.ordre_affichage ASC
+        `;
+        const result = await pool.query(query, [categorieutilisateurid, targetCompte]);
         res.json({status: "success", success: true, data: result.rows});
     } catch (error) {
         console.log(error);
@@ -127,16 +135,16 @@ export async function getFonctionnalitesByCategorieutilisateurs(req, res){
 
 export async function updateCatUtilisateur(req, res){
     try {
-        const {categorieutilisateurid, designation, description, fonctionnalites, organisation, confirm} = req.body;
-        const query = "UPDATE categorieutilisateur SET designation = $1, description = $2, organisation = $3, confirm=$4 WHERE categorieutilisateurid = $5 RETURNING *";
-        const result = await pool.query(query, [designation, description, organisation, confirm, categorieutilisateurid]);
-        if(fonctionnalites.length > 0){
-            // desactiver toute les ancienne
-            await pool.query("UPDATE assignerfonctionnalites SET status = 'inactif' WHERE categorieutilisateurid = $1", [categorieutilisateurid]);
-            fonctionnalites.forEach(async fonctionnalite => {
-                const query = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, status) VALUES ($1, $2, 'actif')";
-                await pool.query(query, [categorieutilisateurid, fonctionnalite]);
-            });
+        const {categorieutilisateurid, designation, description, fonctionnalites = [], organisation = false, confirm = false, isadmin = false} = req.body;
+        const query = "UPDATE categorieutilisateur SET designation = $1, description = $2, organisation = $3, confirm = $4, isadmin = $5 WHERE categorieutilisateurid = $6 RETURNING *";
+        const result = await pool.query(query, [designation, description, !!organisation, !!confirm, isadmin === true || isadmin === 'true', categorieutilisateurid]);
+        if(Array.isArray(fonctionnalites)){
+            // désactiver les anciennes
+            await pool.query("UPDATE assignerfonctionnalites SET status = 'inactif' WHERE categorieutilisateurid = $1 AND (compte = 'main' OR compte IS NULL)", [categorieutilisateurid]);
+            for (const fonctionnalite of fonctionnalites) {
+                const qInsert = "INSERT INTO assignerfonctionnalites (categorieutilisateurid, fonctionnaliteid, compte, status) VALUES ($1, $2, 'main', 'actif')";
+                await pool.query(qInsert, [categorieutilisateurid, fonctionnalite]);
+            }
         }
         return res.json({status: "success", success: true, message: "Categorie utilisateur modifiée avec succès !", data: result.rows[0]});
     } catch (error) {
