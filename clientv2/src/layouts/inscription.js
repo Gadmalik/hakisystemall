@@ -1,4 +1,4 @@
-import { Alert, Button, FormGroup, Input } from "../components/minicomp";
+import { Alert, Button, FormGroup, Input, Logo } from "../components/minicomp";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -121,8 +121,11 @@ export function Inscription() {
         
         <div class="auth-container">
             <div class="auth-sidebar">
-                <div class="logo">
-                    <div class="logo-icon">H</div> HAKI System
+                <div className="logo" style={{ color: "white", fontSize: "1.3rem", fontWeight: "800", display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ background: "white", borderRadius: "10px", padding: "4px", display: "flex", alignItems: "center", justifyContent: "center", width: "42px", height: "42px", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
+                        <Logo size={34} />
+                    </div>
+                    <span>HAKI System</span>
                 </div>
                 <h2>Créez votre compte, à votre rythme.</h2>
                 <p>Un compte vous permet de suivre vos signalements et d'en faire d'autres. Vous pouvez utiliser un pseudo.</p>

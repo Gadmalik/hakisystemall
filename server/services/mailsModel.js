@@ -376,3 +376,44 @@ export function OrganisationStatusMail({ nomOrganisation, status, messageExplica
 </body>
 </html>`;
 }
+
+export function UserValidationMail({ nom, prenom, email, clientUrl, etat = "actif" }) {
+    const isActif = etat === "actif";
+    const loginLink = `${clientUrl || "http://localhost:3000"}/`;
+    return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation de votre compte - HAKI SYSTEM</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+        <div style="background: ${isActif ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)'}; color: white; padding: 28px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 1px;">HAKI SYSTEM</h1>
+            <p style="margin: 6px 0 0; opacity: 0.9; font-size: 0.92rem;">Plateforme de Signalement & Accompagnement Juridique</p>
+        </div>
+        <div style="padding: 30px 24px; color: #1e293b; line-height: 1.6;">
+            <p style="font-size: 1.1rem; font-weight: 600; margin-top: 0;">Bonjour ${prenom ? `${prenom} ` : ''}${nom || 'Utilisateur'},</p>
+            ${isActif ? `
+            <p>Nous avons le plaisir de vous informer que votre compte sur la plateforme <strong>HAKI SYSTEM</strong> a été validé et activé par l'administrateur.</p>
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0; color: #166534;">
+                <p style="margin: 0; font-weight: 600;">✓ Votre compte est désormais actif et opérationnel.</p>
+                <p style="margin: 6px 0 0 0; font-size: 0.88rem;">Vous pouvez dès maintenant vous connecter pour accéder à vos dossiers, recevoir les alertes de signalements et collaborer sur la plateforme.</p>
+            </div>
+            <p style="text-align: center; margin: 28px 0;">
+                <a href="${loginLink}" style="display: inline-block; background: #059669; color: #ffffff !important; text-decoration: none; padding: 13px 28px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(5,150,105,0.3);">Accéder à mon espace</a>
+            </p>
+            ` : `
+            <p>L'administration de HAKI SYSTEM vous informe que le statut de votre compte a été modifié à : <strong style="color: #dc2626; text-transform: uppercase;">${etat}</strong>.</p>
+            <p>Si vous pensez qu'il s'agit d'une erreur ou souhaitez demander un réexamen, veuillez contacter le support administratif.</p>
+            `}
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 24px;">Identifiant associé : <strong>${email}</strong></p>
+        </div>
+        <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 18px 24px; text-align: center; font-size: 0.78rem; color: #64748b;">
+            <p style="margin: 0;">&copy; 2026 HAKI SYSTEM. Protéger vos droits en toute sécurité.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+}

@@ -141,7 +141,7 @@ export async function GetUtilisateur(req, res){
             return res.status(404).json({message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false});
         }
         if(result.rows[0]?.type == "second"){
-            const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, cu.designation AS role FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
+            const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, cu.libelle AS role FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
             return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});
         }
         return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});

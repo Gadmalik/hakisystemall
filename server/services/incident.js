@@ -64,13 +64,16 @@ export async function AddSignalement(data){
                         }
                     }
 
-                    // 3. Notification Email à l'organisation
-                    const targetEmail = user.email_org || user.email;
+                    // 3. Notification Email à chaque utilisateur et organisation
+                    const targetEmail = user.email || user.email_org;
                     if (targetEmail && !notifiedEmails.has(targetEmail)) {
                         notifiedEmails.add(targetEmail);
                         try {
+                            const recipientLabel = user.organisation_nom 
+                                ? (user.nom ? `${user.organisation_nom} (${user.nom} ${user.prenom || ''})` : user.organisation_nom)
+                                : (user.nom ? `${user.nom} ${user.prenom || ''}` : "Partenaire HAKI");
                             const emailHtml = NewIncidentAlertMail({
-                                nomOrganisation: user.organisation_nom || "Organisation partenaire",
+                                nomOrganisation: recipientLabel,
                                 codeUnique: codeunique,
                                 categorie: catName,
                                 lieu: data.lieu,

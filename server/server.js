@@ -6,7 +6,7 @@ import { addArticle, getArticle, getDossier, getUser, setEtatAttribut, suivreDos
 import multer from "multer";
 import { fileURLToPath } from 'url';
 import { AddUtilisateur, AddUtilisateurOrg, getUserByCode, GetUtilisateur, login, SetMdpUtilisateur } from "./services/utilisateurs.js";
-import { ConfirmMail, ConfirmOrgMail } from "./services/mailsModel.js";
+import { ConfirmMail, ConfirmOrgMail, UserValidationMail } from "./services/mailsModel.js";
 import { sendMail } from "./services/mail.js";
 import { AddSignalement, getIncidentById, getIncidentByUser, getIncidentOrienteByOrganisationId, getIncidentOrienteByUserId, getIncidentSuivieByUserId, getIncidentStats } from "./services/incident.js";
 import { SendNotification, SubscribeUser } from "./services/notification.js";
@@ -159,18 +159,41 @@ app.get("/categorie_incident", async (req, res) => {
 app.post("/add_categorie", async (req, res) => {
     try{
         const {designation, niveau} = req.body;
+        if (!designation || !designation.trim()) {
+            return res.json({status:"error", success: false, code:"invalid_input", message:"La désignation est requise !"});
+        }
         const date = new Date();
         const date_create = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-        const verif = await pool.query("SELECT * FROM categorie_incident WHERE designation=$1", [designation]);
+        const verif = await pool.query("SELECT * FROM categorie_incident WHERE LOWER(TRIM(designation))=LOWER(TRIM($1))", [designation.trim()]);
         if(verif.rowCount > 0){
-            res.json({status:"error", code:"designation_used", message:"Cette categorie d'incident existe !"});
+            res.json({status:"error", success: false, code:"designation_used", message:"Cette catégorie d'incident existe déjà !"});
             return;
         }
-        const add = await pool.query("INSERT INTO categorie_incident(designation, date, etat, niveau) VALUES($1, $2, $3, $4)", [designation, date_create, "actif", niveau])
-        res.json({data: add.rows[0], status:"success", code:"success"});
+        const add = await pool.query("INSERT INTO categorie_incident(designation, date, etat, niveau) VALUES($1, $2, $3, $4) RETURNING *", [designation.trim(), date_create, "actif", niveau || "moyen"]);
+        res.json({data: add.rows[0], status:"success", success: true, message: "Catégorie ajoutée avec succès"});
     }catch(error){
         console.log(error);
-        res.json({message:"Une erreur s'est produite !", status:"error", code:"", error: error});
+        res.json({message:"Une erreur s'est produite !", status:"error", success: false, code:"", error: error});
+    }
+})
+
+app.post("/categorie_incident", async (req, res) => {
+    try{
+        const {designation, niveau} = req.body;
+        if (!designation || !designation.trim()) {
+            return res.status(400).json({ status:"error", success: false, message:"La désignation est requise" });
+        }
+        const date = new Date();
+        const date_create = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        const verif = await pool.query("SELECT * FROM categorie_incident WHERE LOWER(TRIM(designation))=LOWER(TRIM($1))", [designation.trim()]);
+        if(verif.rowCount > 0){
+            return res.json({status:"error", success: false, code:"designation_used", message:"Cette catégorie d'incident existe déjà !"});
+        }
+        const add = await pool.query("INSERT INTO categorie_incident(designation, date, etat, niveau) VALUES($1, $2, $3, $4) RETURNING *", [designation.trim(), date_create, "actif", niveau || "moyen"]);
+        res.json({data: add.rows[0], status:"success", success: true, message: "Catégorie ajoutée avec succès"});
+    }catch(error){
+        console.log("Error in POST /categorie_incident:", error);
+        res.status(500).json({message:"Une erreur s'est produite !", status:"error", success: false, code:"", error: error.message});
     }
 })
 
@@ -388,8 +411,134 @@ app.get("/getuser", async (req, res) => {
     }
 })
 
+app.post("/user/status", async (req, res) => {
+    try {
+        const { userid, etat } = req.body;
+        if (!userid || !etat) {
+            return res.status(400).json({ success: false, message: "userid et etat sont requis" });
+        }
+
+        const updateResult = await pool.query(
+            "UPDATE utilisateurs SET etat = $1 WHERE userid = $2 RETURNING *",
+            [etat, parseInt(userid, 10)]
+        );
+
+        if (updateResult.rowCount === 0) {
+            return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+
+        const user = updateResult.rows[0];
+
+        // Si l'utilisateur est activé ('actif'), on active aussi son organisation s'il en a une
+        if (etat === "actif") {
+            const orgResult = await pool.query("SELECT * FROM organisation WHERE userid = $1", [user.userid]);
+            if (orgResult.rows.length > 0 && orgResult.rows[0].status !== "actif") {
+                await pool.query("UPDATE organisation SET status = 'actif' WHERE userid = $1", [user.userid]);
+            }
+
+            // 1. Notification Push Web
+            try {
+                await SendNotification({
+                    userid: user.userid,
+                    title: "✅ Compte HAKI System validé !",
+                    body: "Votre compte a été validé par l'administrateur. Vous avez désormais un accès complet à votre espace.",
+                    url: "/home/dashboard"
+                });
+            } catch (pushErr) {
+                console.log("Push note on user validation:", pushErr?.message);
+            }
+
+            // 2. Notification In-App
+            try {
+                await pool.query(
+                    "INSERT INTO notifications (userid, title, body, url, lu, created_at) VALUES ($1, $2, $3, $4, false, CURRENT_TIMESTAMP)",
+                    [
+                        user.userid,
+                        "✅ Compte validé !",
+                        "Félicitations, votre compte a été approuvé par l'administration. Bienvenue sur HAKI System !",
+                        "/home/dashboard"
+                    ]
+                );
+            } catch (inAppErr) {
+                console.log("In-app note on user validation:", inAppErr?.message);
+            }
+
+            // 3. Notification Email
+            if (user.email) {
+                try {
+                    const emailHtml = UserValidationMail({
+                        nom: user.nom,
+                        prenom: user.prenom,
+                        email: user.email,
+                        etat: "actif"
+                    });
+                    await sendMail({
+                        to: user.email,
+                        subject: "[HAKI SYSTEM] Votre compte a été validé avec succès",
+                        text: emailHtml
+                    });
+                } catch (mailErr) {
+                    console.log("Email note on user validation:", mailErr?.message);
+                }
+            }
+        } else if (etat === "inactif") {
+            try {
+                await pool.query(
+                    "INSERT INTO notifications (userid, title, body, url, lu, created_at) VALUES ($1, $2, $3, $4, false, CURRENT_TIMESTAMP)",
+                    [
+                        user.userid,
+                        "⚠️ Compte désactivé",
+                        "Votre compte a été désactivé par l'administrateur.",
+                        "/waiting"
+                    ]
+                );
+            } catch (inAppErr) {
+                console.log("In-app note on deactivation:", inAppErr?.message);
+            }
+        }
+
+        res.json({ success: true, status: "success", message: `Statut utilisateur mis à jour (${etat})`, data: user });
+    } catch (error) {
+        console.log("Error in /user/status:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 app.post("/updateprofile", async (req, res) => {
     try{
+        if (req.body.userid && req.body.etat) {
+            const { userid, etat } = req.body;
+            const updateResult = await pool.query(
+                "UPDATE utilisateurs SET etat = $1 WHERE userid = $2 RETURNING *",
+                [etat, parseInt(userid, 10)]
+            );
+            if (updateResult.rowCount === 0) {
+                return res.json({ success: false, message: "Utilisateur non trouvé" });
+            }
+            const u = updateResult.rows[0];
+            if (etat === "actif") {
+                try {
+                    await pool.query("UPDATE organisation SET status = 'actif' WHERE userid = $1", [u.userid]);
+                    await SendNotification({
+                        userid: u.userid,
+                        title: "✅ Compte validé !",
+                        body: "Votre compte a été validé par l'administrateur.",
+                        url: "/home/dashboard"
+                    });
+                    await pool.query(
+                        "INSERT INTO notifications (userid, title, body, url, lu, created_at) VALUES ($1, $2, $3, $4, false, CURRENT_TIMESTAMP)",
+                        [u.userid, "✅ Compte validé !", "Votre compte a été approuvé par l'administration.", "/home/dashboard"]
+                    );
+                    if (u.email) {
+                        const emailHtml = UserValidationMail({ nom: u.nom, prenom: u.prenom, email: u.email, etat: "actif" });
+                        await sendMail({ to: u.email, subject: "[HAKI SYSTEM] Compte validé", text: emailHtml });
+                    }
+                } catch (e) {
+                    console.log("updateprofile activation note:", e?.message);
+                }
+            }
+            return res.json({ success: true, status: "success", data: u });
+        }
         const {username, noms, adresse, phone, email, password, oldPassword} = req.body;
         const reponse = await updateProfile({username, noms, adresse, phone, email, password, oldPassword});
         res.json({...reponse});

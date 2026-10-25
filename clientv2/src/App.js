@@ -27,6 +27,7 @@ import { AdminDashboard } from './layouts/AdminDashboard';
 import { AdminUtilisateurs } from './layouts/AdminUtilisateurs';
 import { CategoriesIncident } from './layouts/CategoriesIncident';
 import { MailsManager } from './layouts/MailsManager';
+import { ConfirmInvitation } from './layouts/confirmInvitation';
 // import { Articles } from '../../client/src/layout/Articles';
 
 function App() {
@@ -64,6 +65,8 @@ function App() {
         <Route path="/chatbot" element={<Chatbot />} />
         <Route path="/waiting" element={<LandingPage />} />
         <Route path="/suiviedossier" element={<SuivieDossier />} />
+        <Route path="/confirm-invitation/:code/:email" element={<ConfirmInvitation />} />
+        <Route path="/confirm-invitation" element={<ConfirmInvitation />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,4 +1,4 @@
-import { Button, FormGroup, Input } from "../components/minicomp";
+import { Button, FormGroup, Input, Logo } from "../components/minicomp";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -74,11 +74,11 @@ export function Login() {
     return (
         <div className="auth-container">
             <div className="auth-sidebar" style={{ background: "var(--primary-gradient)" }}>
-                <div className="logo" style={{ color: "white", fontSize: "1.3rem", fontWeight: "800", display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div className="logo-icon" style={{ background: "white", color: "var(--primary)", width: "38px", height: "38px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "900" }}>
-                        H
+                <div className="logo" style={{ color: "white", fontSize: "1.3rem", fontWeight: "800", display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ background: "white", borderRadius: "10px", padding: "4px", display: "flex", alignItems: "center", justifyContent: "center", width: "42px", height: "42px", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
+                        <Logo size={34} />
                     </div>
-                    HAKI System
+                    <span>HAKI System</span>
                 </div>
                 <h2>Plateforme Professionnelle de Signalement & de Suivi</h2>
                 <p>

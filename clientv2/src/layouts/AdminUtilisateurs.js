@@ -8,6 +8,7 @@ export function AdminUtilisateurs({}) {
     const [loaderVisible, setLoaderVisible] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState("all");
+    const [feedbackMsg, setFeedbackMsg] = useState("");
     const link = process.env.REACT_APP_LINK;
 
     const loadUsers = async () => {
@@ -24,28 +25,41 @@ export function AdminUtilisateurs({}) {
         setLoaderVisible(false);
     };
 
-    const toggleUserStatus = async (user) => {
-        const nextState = user.etat === "actif" ? "inactif" : "actif";
-        if (!window.confirm(`Voulez-vous passer l'utilisateur "${user.nom} ${user.prenom || ''}" à l'état "${nextState}" ?`)) return;
+    const toggleUserStatus = async (user, targetState = null) => {
+        const nextState = targetState || (user.etat === "actif" ? "inactif" : "actif");
+        const actionLabel = nextState === "actif" ? "activer et valider" : "désactiver";
+        if (!window.confirm(`Voulez-vous ${actionLabel} le compte de "${user.nom} ${user.prenom || ''}" ? Une notification et un e-mail lui seront automatiquement envoyés.`)) return;
 
+        setLoaderVisible(true);
         try {
-            await fetch(`${link}/updateprofile`, {
+            const res = await fetch(`${link}/user/status`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ userid: user.userid, etat: nextState })
             });
-            loadUsers();
+            const data = await res.json();
+            if (data.success || data.status === "success") {
+                setFeedbackMsg(nextState === "actif" ? `✓ Compte de ${user.nom} validé avec succès ! Notification envoyée.` : `Compte de ${user.nom} désactivé.`);
+                setTimeout(() => setFeedbackMsg(""), 6000);
+                loadUsers();
+            } else {
+                alert(data.message || "Erreur lors de la mise à jour");
+            }
         } catch (err) {
             console.log(err);
         }
+        setLoaderVisible(false);
     };
 
     useEffect(() => {
         loadUsers();
     }, []);
 
+    const pendingCount = users.filter(u => u.etat === "en attente" || !u.etat).length;
+
     const filteredUsers = useMemo(() => {
         return users.filter((u) => {
+            if (activeTab === "pending" && u.etat !== "en attente" && u.etat) return false;
             if (activeTab === "main" && u.type !== "main") return false;
             if (activeTab === "second" && u.type !== "second") return false;
             if (activeTab === "actif" && u.etat !== "actif") return false;
@@ -69,6 +83,13 @@ export function AdminUtilisateurs({}) {
             {loaderVisible && <Loader />}
 
             <div style={{ padding: "15px 20px" }}>
+                {feedbackMsg && (
+                    <div style={{ background: "#dcfce7", color: "#166534", padding: "12px 16px", borderRadius: "8px", border: "1px solid #bbf7d0", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px", fontWeight: 600 }}>
+                        <i className="fa-solid fa-circle-check"></i>
+                        {feedbackMsg}
+                    </div>
+                )}
+
                 <div className="flex-between" style={{ flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
                     <div className="chip-group">
                         <button
@@ -77,6 +98,19 @@ export function AdminUtilisateurs({}) {
                             onClick={() => setActiveTab("all")}
                         >
                             Tous les comptes ({users.length})
+                        </button>
+                        <button
+                            type="button"
+                            className={`chip ${activeTab === "pending" ? "active" : ""}`}
+                            onClick={() => setActiveTab("pending")}
+                            style={{ position: "relative" }}
+                        >
+                            En attente de validation
+                            {pendingCount > 0 && (
+                                <span style={{ marginLeft: "6px", background: "#f59e0b", color: "white", padding: "1px 6px", borderRadius: "10px", fontSize: "0.72rem", fontWeight: 700 }}>
+                                    {pendingCount}
+                                </span>
+                            )}
                         </button>
                         <button
                             type="button"
@@ -184,15 +218,50 @@ export function AdminUtilisateurs({}) {
                                                 </span>
                                             </td>
                                             <td style={{ textAlign: "right" }}>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-secondary btn-sm"
-                                                    onClick={() => toggleUserStatus(u)}
-                                                    title={isActif ? "Désactiver le compte" : "Activer le compte"}
-                                                    style={{ padding: "4px 8px", fontSize: "0.75rem", color: isActif ? "#dc2626" : "#16a34a" }}
-                                                >
-                                                    <i className={`fa-solid fa-${isActif ? "ban" : "check"}`}></i>
-                                                </button>
+                                                <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
+                                                    {(!u.etat || u.etat === "en attente") ? (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-sm"
+                                                                onClick={() => toggleUserStatus(u, "actif")}
+                                                                title="Valider le compte"
+                                                                style={{ background: "#16a34a", color: "white", padding: "4px 10px", fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                                                            >
+                                                                <i className="fa-solid fa-check"></i> Valider
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-secondary btn-sm"
+                                                                onClick={() => toggleUserStatus(u, "inactif")}
+                                                                title="Refuser"
+                                                                style={{ padding: "4px 8px", fontSize: "0.75rem", color: "#dc2626" }}
+                                                            >
+                                                                <i className="fa-solid fa-xmark"></i>
+                                                            </button>
+                                                        </>
+                                                    ) : isActif ? (
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-secondary btn-sm"
+                                                            onClick={() => toggleUserStatus(u, "inactif")}
+                                                            title="Désactiver le compte"
+                                                            style={{ padding: "4px 8px", fontSize: "0.75rem", color: "#dc2626" }}
+                                                        >
+                                                            <i className="fa-solid fa-ban" style={{ marginRight: "4px" }}></i> Désactiver
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-secondary btn-sm"
+                                                            onClick={() => toggleUserStatus(u, "actif")}
+                                                            title="Réactiver le compte"
+                                                            style={{ padding: "4px 8px", fontSize: "0.75rem", color: "#16a34a" }}
+                                                        >
+                                                            <i className="fa-solid fa-check" style={{ marginRight: "4px" }}></i> Activer
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );

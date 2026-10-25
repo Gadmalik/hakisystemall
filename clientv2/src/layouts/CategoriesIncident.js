@@ -299,6 +299,7 @@ export function CategoriesIncident({}) {
                                 type="button"
                                 className="btn btn-secondary btn-sm"
                                 onClick={() => setEditingCategory(null)}
+                                disabled={actionLoader}
                             >
                                 Annuler
                             </button>
@@ -306,8 +307,19 @@ export function CategoriesIncident({}) {
                                 type="button"
                                 className="btn btn-primary btn-sm"
                                 onClick={handleUpdateCategory}
+                                disabled={actionLoader}
                             >
-                                Enregistrer
+                                {actionLoader ? (
+                                    <>
+                                        <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "6px" }}></i>
+                                        Enregistrement...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="fa-solid fa-check" style={{ marginRight: "6px" }}></i>
+                                        Enregistrer
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

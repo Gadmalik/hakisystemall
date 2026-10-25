@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Logo } from "../components/minicomp";
 
 export function LandingPage({}){
     const link = process.env.REACT_APP_LINK;
@@ -45,7 +46,9 @@ export function LandingPage({}){
         <main class="waiting-container">
             
             <div class="card" style={{padding: "32px 24px"}}>
-                
+                <div align="center" style={{ marginBottom: "16px" }}>
+                    <Logo size={48} />
+                </div>
                 <div class="waiting-icon-circle">
                     <i class="fa-solid fa-hourglass-half"></i>
                 </div>
