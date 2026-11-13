@@ -1,5 +1,5 @@
 export function ConfirmMail(noms, code) {
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -165,10 +165,10 @@ export function ConfirmMail(noms, code) {
 }
 
 export function ConfirmOrgMail(noms, email, code, nomOrganisation) {
-    const url = process.env.CLIENT_URL_URL;
-    const confirmationLink = `${url}/confirm-invitation/${encodeURIComponent(code)}/${encodeURIComponent(email)}`;
+  const url = process.env.CLIENT_URL;
+  const confirmationLink = `${url}/confirm-invitation/${encodeURIComponent(code)}/${encodeURIComponent(email)}`;
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -314,9 +314,17 @@ export function ConfirmOrgMail(noms, email, code, nomOrganisation) {
 </html>`;
 }
 
-export function NewIncidentAlertMail({ nomOrganisation, codeUnique, categorie, lieu, dateIncident, clientUrl, id }) {
-    const link = `${clientUrl || 'http://localhost:3000'}/home/signalement/${encodeURIComponent(id)}/code`;
-    return `<!DOCTYPE html>
+export function NewIncidentAlertMail({
+  nomOrganisation,
+  codeUnique,
+  categorie,
+  lieu,
+  dateIncident,
+  clientUrl,
+  id,
+}) {
+  const link = `${clientUrl || "http://localhost:3000"}/home/signalement/${encodeURIComponent(id)}`;
+  return `<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -334,8 +342,8 @@ export function NewIncidentAlertMail({ nomOrganisation, codeUnique, categorie, l
             <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin: 20px 0;">
                 <p style="margin: 4px 0;"><strong>Code unique :</strong> <code style="color: #4338ca; font-weight: 700;">${codeUnique}</code></p>
                 <p style="margin: 4px 0;"><strong>Catégorie :</strong> ${categorie}</p>
-                <p style="margin: 4px 0;"><strong>Lieu :</strong> ${lieu || 'Non précisé'}</p>
-                <p style="margin: 4px 0;"><strong>Date :</strong> ${dateIncident || 'Aujourd\'hui'}</p>
+                <p style="margin: 4px 0;"><strong>Lieu :</strong> ${lieu || "Non précisé"}</p>
+                <p style="margin: 4px 0;"><strong>Date :</strong> ${dateIncident || "Aujourd'hui"}</p>
             </div>
             <p style="text-align: center; margin: 24px 0;">
                 <a href="${link}" style="display: inline-block; background: #4338ca; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">Consulter le dossier</a>
@@ -350,9 +358,13 @@ export function NewIncidentAlertMail({ nomOrganisation, codeUnique, categorie, l
 </html>`;
 }
 
-export function OrganisationStatusMail({ nomOrganisation, status, messageExplication }) {
-    const isActif = status === 'actif';
-    return `<!DOCTYPE html>
+export function OrganisationStatusMail({
+  nomOrganisation,
+  status,
+  messageExplication,
+}) {
+  const isActif = status === "actif";
+  return `<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -360,15 +372,15 @@ export function OrganisationStatusMail({ nomOrganisation, status, messageExplica
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px;">
     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
-        <div style="background: ${isActif ? '#059669' : '#dc2626'}; color: white; padding: 28px 24px; text-align: center;">
+        <div style="background: ${isActif ? "#059669" : "#dc2626"}; color: white; padding: 28px 24px; text-align: center;">
             <h1 style="margin: 0; font-size: 1.5rem;">HAKI SYSTEM</h1>
             <p style="margin: 6px 0 0; opacity: 0.9;">Mise à jour de votre compte organisation</p>
         </div>
         <div style="padding: 28px 24px; color: #1e293b; line-height: 1.6;">
             <p>Bonjour <strong>${nomOrganisation}</strong>,</p>
-            <p>L'administration de HAKI SYSTEM vous informe que votre statut est désormais : <strong style="color: ${isActif ? '#059669' : '#dc2626'}; text-transform: uppercase;">${status}</strong>.</p>
-            ${messageExplication ? `<p><em>${messageExplication}</em></p>` : ''}
-            ${isActif ? '<p>Vous pouvez maintenant accéder à votre espace de travail et commencer à traiter les dossiers citoyens.</p>' : '<p>Pour toute question ou demande de recours, contactez le support administrateur.</p>'}
+            <p>L'administration de HAKI SYSTEM vous informe que votre statut est désormais : <strong style="color: ${isActif ? "#059669" : "#dc2626"}; text-transform: uppercase;">${status}</strong>.</p>
+            ${messageExplication ? `<p><em>${messageExplication}</em></p>` : ""}
+            ${isActif ? "<p>Vous pouvez maintenant accéder à votre espace de travail et commencer à traiter les dossiers citoyens.</p>" : "<p>Pour toute question ou demande de recours, contactez le support administrateur.</p>"}
         </div>
         <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 18px 24px; text-align: center; font-size: 0.78rem; color: #64748b;">
             <p>&copy; 2026 HAKI SYSTEM. Tous droits réservés.</p>
@@ -378,10 +390,16 @@ export function OrganisationStatusMail({ nomOrganisation, status, messageExplica
 </html>`;
 }
 
-export function UserValidationMail({ nom, prenom, email, clientUrl, etat = "actif" }) {
-    const isActif = etat === "actif";
-    const loginLink = `${clientUrl || "http://localhost:3000"}/`;
-    return `<!DOCTYPE html>
+export function UserValidationMail({
+  nom,
+  prenom,
+  email,
+  clientUrl,
+  etat = "actif",
+}) {
+  const isActif = etat === "actif";
+  const loginLink = `${clientUrl || "http://localhost:3000"}/`;
+  return `<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -390,13 +408,15 @@ export function UserValidationMail({ nom, prenom, email, clientUrl, etat = "acti
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px;">
     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
-        <div style="background: ${isActif ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)'}; color: white; padding: 28px 24px; text-align: center;">
+        <div style="background: ${isActif ? "linear-gradient(135deg, #059669 0%, #047857 100%)" : "linear-gradient(135deg, #dc2626 0%, #991b1b 100%)"}; color: white; padding: 28px 24px; text-align: center;">
             <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 1px;">HAKI SYSTEM</h1>
             <p style="margin: 6px 0 0; opacity: 0.9; font-size: 0.92rem;">Plateforme de Signalement & Accompagnement Juridique</p>
         </div>
         <div style="padding: 30px 24px; color: #1e293b; line-height: 1.6;">
-            <p style="font-size: 1.1rem; font-weight: 600; margin-top: 0;">Bonjour ${prenom ? `${prenom} ` : ''}${nom || 'Utilisateur'},</p>
-            ${isActif ? `
+            <p style="font-size: 1.1rem; font-weight: 600; margin-top: 0;">Bonjour ${prenom ? `${prenom} ` : ""}${nom || "Utilisateur"},</p>
+            ${
+              isActif
+                ? `
             <p>Nous avons le plaisir de vous informer que votre compte sur la plateforme <strong>HAKI SYSTEM</strong> a été validé et activé par l'administrateur.</p>
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0; color: #166534;">
                 <p style="margin: 0; font-weight: 600;">✓ Votre compte est désormais actif et opérationnel.</p>
@@ -405,10 +425,12 @@ export function UserValidationMail({ nom, prenom, email, clientUrl, etat = "acti
             <p style="text-align: center; margin: 28px 0;">
                 <a href="${loginLink}" style="display: inline-block; background: #059669; color: #ffffff !important; text-decoration: none; padding: 13px 28px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(5,150,105,0.3);">Accéder à mon espace</a>
             </p>
-            ` : `
+            `
+                : `
             <p>L'administration de HAKI SYSTEM vous informe que le statut de votre compte a été modifié à : <strong style="color: #dc2626; text-transform: uppercase;">${etat}</strong>.</p>
             <p>Si vous pensez qu'il s'agit d'une erreur ou souhaitez demander un réexamen, veuillez contacter le support administratif.</p>
-            `}
+            `
+            }
             <p style="font-size: 0.85rem; color: #64748b; margin-top: 24px;">Identifiant associé : <strong>${email}</strong></p>
         </div>
         <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 18px 24px; text-align: center; font-size: 0.78rem; color: #64748b;">

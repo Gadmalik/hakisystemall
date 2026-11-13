@@ -1,203 +1,504 @@
 import pool from "../db.js";
 import bcrypt from "bcrypt";
 
-export async function AddUtilisateur(data){
-    try{
-        let config = true;
-        if(!data.nom || !data.username || !data.categorieutilisateurid){
-            return {message:"informations de connexion insuffisant !"};
-        }
-        const verif_user = await VerifUsername(data);
-        if(!verif_user.success){
-            return verif_user;
-        }
-        const verif_email = await VerifEmail(data);
-        if(!verif_email.success){
-            return verif_email;
-        }
-        const verif_phone = await VerifPhone(data);
-        if(!verif_phone.success){
-            return verif_phone;
-        }
-        const verif_categorie = await getCategorieUtilisateurById(data.categorieutilisateurid);
-        console.log(verif_categorie);
-        if(!verif_categorie.success){
-            return verif_categorie;
-        }
-        let etat = "actif";
-        if(verif_categorie.data.confirm){
-            etat = "en attente";
-            config = false;
-        }
-        const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, mdp, code, etat, categorieutilisateurid, adresse,date_create, config) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.mdp ? await bcrypt.hash(data.mdp, 10) : null, data.code, etat, data.categorieutilisateurid, data.adresse, data.date_create, config]);
-        return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true, data:verif_categorie?.data?.isDefault ? user.rows[0] : {}};
-
-    }catch(err){
-        console.log(err);
-        return {message:"Une erreur s'est produite !", status:"error", code:"error", success:false};
-    }
-}
-
-
-export async function AddUtilisateurOrg(data){
-    if(!data.nom || !data.prenom || !data.phone || !data.email || !data.username || !data.categorie){
-        return {message:"informations de connexion insuffisant !"};
+export async function AddUtilisateur(data) {
+  try {
+    let config = true;
+    if (!data.nom || !data.username || !data.categorieutilisateurid) {
+      return { message: "informations de connexion insuffisant !" };
     }
     const verif_user = await VerifUsername(data);
-    if(!verif_user.success){
-        return verif_user;
+    if (!verif_user.success) {
+      return verif_user;
     }
     const verif_email = await VerifEmail(data);
-    if(!verif_email.success){
-        return verif_email;
+    if (!verif_email.success) {
+      return verif_email;
     }
     const verif_phone = await VerifPhone(data);
-    if(!verif_phone.success){
-        return verif_phone;
+    if (!verif_phone.success) {
+      return verif_phone;
     }
-    const user = await pool.query("INSERT INTO utilisateurs (nom, prenom, phone, email, username, code, etat, categorieutilisateurid, adresse,date_create, type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *", [data.nom, data.prenom, data.phone, data.email, data.username, data.code, "en attente", data.categorie, data.adresse, data.date_create, "second"]);
-    return {message:"Utilisateur ajouté avec succès !", status:"success", code:"success", success:true};
+    const verif_categorie = await getCategorieUtilisateurById(
+      data.categorieutilisateurid,
+    );
+    console.log(verif_categorie);
+    if (!verif_categorie.success) {
+      return verif_categorie;
+    }
+    let etat = "actif";
+    if (verif_categorie.data.confirm) {
+      etat = "en attente";
+      config = false;
+    }
+    const user = await pool.query(
+      "INSERT INTO utilisateurs (nom, prenom, phone, email, username, mdp, code, etat, categorieutilisateurid, adresse,date_create, config) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",
+      [
+        data.nom,
+        data.prenom,
+        data.phone,
+        data.email,
+        data.username,
+        data.mdp ? await bcrypt.hash(data.mdp, 10) : null,
+        data.code,
+        etat,
+        data.categorieutilisateurid,
+        data.adresse,
+        data.date_create,
+        config,
+      ],
+    );
+    return {
+      message: "Utilisateur ajouté avec succès !",
+      status: "success",
+      code: "success",
+      success: true,
+      data: verif_categorie?.data?.isDefault ? user.rows[0] : {},
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      message: "Une erreur s'est produite !",
+      status: "error",
+      code: "error",
+      success: false,
+    };
+  }
 }
 
-
-export async function VerifUsername(data){
-    const verif_user = await pool.query("SELECT * FROM utilisateurs WHERE username = $1", [data.username]);
-    if(verif_user.rows.length > 0){
-        return {message:"Utilisateur deja existant !", status:"error", code:"username_used", success:false};
-    }
-    return {message:"Utilisateur disponible !", status:"success", code:"success", success:true};
+export async function AddUtilisateurOrg(data) {
+  if (
+    !data.nom ||
+    !data.prenom ||
+    !data.phone ||
+    !data.email ||
+    !data.username ||
+    !data.categorie
+  ) {
+    return { message: "informations de connexion insuffisant !" };
+  }
+  const verif_user = await VerifUsername(data);
+  if (!verif_user.success) {
+    return verif_user;
+  }
+  const verif_email = await VerifEmail(data);
+  if (!verif_email.success) {
+    return verif_email;
+  }
+  const verif_phone = await VerifPhone(data);
+  if (!verif_phone.success) {
+    return verif_phone;
+  }
+  const user = await pool.query(
+    "INSERT INTO utilisateurs (nom, prenom, phone, email, username, code, etat, categorieutilisateurid, adresse,date_create, type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *",
+    [
+      data.nom,
+      data.prenom,
+      data.phone,
+      data.email,
+      data.username,
+      data.code,
+      "en attente",
+      data.categorie,
+      data.adresse,
+      data.date_create,
+      "second",
+    ],
+  );
+  return {
+    message: "Utilisateur ajouté avec succès !",
+    status: "success",
+    code: "success",
+    success: true,
+  };
 }
 
-export async function UpdateCodeUtilisateur(data){
-    const setCode = await pool.query("UPDATE utilisateurs SET code = $1 WHERE email = $2", [data.code, data.email]);
-    if(setCode.rows.length > 0){
-        return {message:"Code mis à jour avec succès !", status:"success", code:"success", success:true};
-    }
-    return {message:"Une erreur s'est produite !", status:"error", code:"code_invalid", error: setCode, success:false};
+export async function VerifUsername(data) {
+  const verif_user = await pool.query(
+    "SELECT * FROM utilisateurs WHERE username = $1",
+    [data.username],
+  );
+  if (verif_user.rows.length > 0) {
+    return {
+      message: "Utilisateur deja existant !",
+      status: "error",
+      code: "username_used",
+      success: false,
+    };
+  }
+  return {
+    message: "Utilisateur disponible !",
+    status: "success",
+    code: "success",
+    success: true,
+  };
 }
 
-export async function getUserByCode(data){
-    if(!data.code || !data.email){
-        return {message:"Code ou email incorrect !", status:"error", code:"code_invalid", success:false};
+export async function UpdateCodeUtilisateur(data) {
+  const setCode = await pool.query(
+    "UPDATE utilisateurs SET code = $1 WHERE email = $2",
+    [data.code, data.email],
+  );
+  if (setCode.rows.length > 0) {
+    return {
+      message: "Code mis à jour avec succès !",
+      status: "success",
+      code: "success",
+      success: true,
+    };
+  }
+  return {
+    message: "Une erreur s'est produite !",
+    status: "error",
+    code: "code_invalid",
+    error: setCode,
+    success: false,
+  };
+}
+
+export async function getUserByCode(data) {
+  if (!data.code || !data.email) {
+    return {
+      message: "Code ou email incorrect !",
+      status: "error",
+      code: "code_invalid",
+      success: false,
+    };
+  }
+  try {
+    console.log(data);
+    const result = await pool.query(
+      "SELECT * FROM utilisateurs WHERE code = $1 AND email = $2",
+      [data.code, data.email],
+    );
+    if (result.rows.length === 0) {
+      return {
+        message: "Code incorrect !",
+        status: "error",
+        code: "code_invalid",
+        success: false,
+      };
     }
-    try{
-        console.log(data)
-        const result = await pool.query("SELECT * FROM utilisateurs WHERE code = $1 AND email = $2", [data.code, data.email]);
-        if(result.rows.length === 0){
-            return {message:"Code incorrect !", status:"error", code:"code_invalid", success:false};
+    return {
+      data: result.rows[0],
+      status: "success",
+      code: "success",
+      success: true,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      message: "Une erreur s'est produite !",
+      status: "error",
+      code: "code_invalid",
+      error: error,
+      success: false,
+    };
+  }
+}
+
+export async function SetMdpUtilisateur(data) {
+  try {
+    const hashmdp = await bcrypt.hash(data.mdp, 10);
+    const verif_user = await pool.query(
+      "SELECT * FROM utilisateurs WHERE userid = $1",
+      [data.userid],
+    );
+    if (verif_user.rows.length === 0) {
+      return {
+        message: "Utilisateur introuvable !",
+        status: "error",
+        code: "user_not_found",
+        success: false,
+      };
+    }
+    const setMdp = await pool.query(
+      "UPDATE utilisateurs SET mdp = $1, code = $2 WHERE userid=$3 RETURNING *",
+      [hashmdp, null, data.userid],
+    );
+    if (setMdp.rowCount > 0) {
+      if (setMdp.rows[0].type === "second") {
+        await pool.query(
+          "UPDATE utilisateurs SET etat ='actif' WHERE userid=$1",
+          [data.userid],
+        );
+        return {
+          message: "Mot de passe mis à jour avec succès !",
+          status: "success",
+          code: "success",
+          success: true,
+          data: setMdp.rows[0],
+        };
+      }
+      const categorieutilisateur = await getCategorieUtilisateurById(
+        verif_user.rows[0].categorieutilisateurid,
+      );
+      const organisation = await pool.query(
+        "SELECT * FROM organisation WHERE userid=$1",
+        [data.userid],
+      );
+      return {
+        message: "Mot de passe mis à jour avec succès !",
+        status: "success",
+        code: "success",
+        success: true,
+        data: {
+          categorieutilisateur: categorieutilisateur.data,
+          user: setMdp.rows[0],
+          organisation: organisation.rows[0],
+        },
+      };
+    }
+    return {
+      message: "Une erreur s'est produite !",
+      status: "error",
+      code: "code_invalid",
+      error: setMdp,
+      success: false,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      message: "Une erreur s'est produite !",
+      status: "error",
+      code: "code_invalid",
+      error: error,
+      success: false,
+    };
+  }
+}
+
+export async function VerifEmail(data) {
+  const verif_email = await pool.query(
+    "SELECT * FROM utilisateurs WHERE email = $1",
+    [data.email],
+  );
+  if (verif_email.rows.length > 0) {
+    return {
+      message: "Email deja existant !",
+      status: "error",
+      code: "email_used",
+      success: false,
+    };
+  }
+  return {
+    message: "Email disponible !",
+    status: "success",
+    code: "success",
+    success: true,
+  };
+}
+
+export async function VerifPhone(data) {
+  const verif_phone = await pool.query(
+    "SELECT * FROM utilisateurs WHERE phone = $1",
+    [data.phone],
+  );
+  if (verif_phone.rows.length > 0) {
+    return {
+      message: "Telephone deja existant !",
+      status: "error",
+      code: "phone_used",
+      success: false,
+    };
+  }
+  return {
+    message: "Telephone disponible !",
+    status: "success",
+    code: "success",
+    success: true,
+  };
+}
+
+export async function GetUtilisateur(req, res) {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      "SELECT *, util.userid AS userid, og.status AS ogStatus, cu.designation AS role FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1",
+      [id],
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "Utilisateur introuvable !",
+        status: "error",
+        code: "user_not_found",
+        success: false,
+      });
+    }
+    if (result.rows[0]?.type == "second") {
+      const result = await pool.query(
+        "SELECT *, util.userid AS userid, og.status AS ogStatus, cu.libelle AS role FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1",
+        [id],
+      );
+      return res.status(200).json({
+        data: result.rows[0],
+        status: "success",
+        code: "success",
+        success: true,
+      });
+    }
+    return res.status(200).json({
+      data: result.rows[0],
+      status: "success",
+      code: "success",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Une erreur s'est produite !",
+      status: "error",
+      code: "error",
+      error: error,
+      success: false,
+    });
+  }
+}
+
+export function UpdateUtilisateur(req, res, next) {
+  const { userid, nom, prenom, phone, email, adresse } = req.body;
+  console.log(req.body);
+  try {
+    pool.query(
+      "UPDATE utilisateurs SET nom=$1, prenom=$2, phone=$3, email=$4, adresse=$5 WHERE userid=$6 RETURNING *",
+      [nom, prenom, phone, email, adresse, userid],
+      (error, result) => {
+        if (error) {
+          console.log(error);
+          return res.status(500).json({
+            message: "Une erreur s'est produite !",
+            status: "error",
+            code: "error",
+            error: error,
+            success: false,
+          });
         }
-        return {data: result.rows[0], status:"success", code:"success", success:true};
-    }catch(error){
-        console.log(error);
-        return {message:"Une erreur s'est produite !", status:"error", code:"code_invalid", error: error, success:false};
+        if (result.rows.length === 0) {
+          return res.status(404).json({
+            message: "Utilisateur introuvable !",
+            status: "error",
+            code: "user_not_found",
+            success: false,
+          });
+        }
+        return res.status(200).json({
+          message: "Utilisateur mis à jour avec succès !",
+          status: "success",
+          code: "success",
+          success: true,
+          data: result.rows[0],
+        });
+      },
+    );
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Une erreur s'est produite !",
+      status: "error",
+      code: "error",
+      error: error,
+      success: false,
+    });
+  }
+}
+
+export function DeleteUtilisateur(data) {}
+
+export async function getCategorieUtilisateurById(categorieutilisateurid) {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM categorieutilisateur WHERE categorieutilisateurid = $1",
+      [categorieutilisateurid],
+    );
+    console.log(categorieutilisateurid);
+    return {
+      data: result.rows[0],
+      status: "success",
+      code: "success",
+      success: true,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      message: "Une erreur s'est produite !",
+      status: "error",
+      code: "",
+      error: error,
+      success: false,
+    };
+  }
+}
+
+export async function login(data) {
+  try {
+    const user = await pool.query(
+      "SELECT *, util.userid AS userid, og.status AS ogStatus, util.config AS config FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE (util.phone = $1 OR util.email = $1 OR util.username = $1)",
+      [data.identifiant],
+    );
+    if (user.rows.length === 0) {
+      return {
+        message: "Utilisateur introuvable !",
+        status: "error",
+        code: "user_not_found",
+        success: false,
+      };
     }
-}
-
-export async function SetMdpUtilisateur(data){
-    try{
-        const hashmdp = await bcrypt.hash(data.mdp, 10);
-        const verif_user = await pool.query("SELECT * FROM utilisateurs WHERE userid = $1", [data.userid]);
-        if(verif_user.rows.length === 0){
-            return {message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false};
-        }
-        const setMdp = await pool.query("UPDATE utilisateurs SET mdp = $1, code = $2 WHERE userid=$3 RETURNING *", [hashmdp, null, data.userid]);
-        if(setMdp.rowCount > 0){
-            if(setMdp.rows[0].type === "second"){
-                await pool.query("UPDATE utilisateurs SET etat ='actif' WHERE userid=$1", [data.userid]);
-                return {message:"Mot de passe mis à jour avec succès !", status:"success", code:"success", success:true, data: setMdp.rows[0]};
-            }
-            const categorieutilisateur = await getCategorieUtilisateurById(verif_user.rows[0].categorieutilisateurid);
-            const organisation = await pool.query("SELECT * FROM organisation WHERE userid=$1", [data.userid]);
-            return {message:"Mot de passe mis à jour avec succès !", status:"success", code:"success", success:true, data:{categorieutilisateur: categorieutilisateur.data, user: setMdp.rows[0], organisation: organisation.rows[0]}};
-        }
-        return {message:"Une erreur s'est produite !", status:"error", code:"code_invalid", error: setMdp, success:false};
-    }catch(error){
-        console.log(error);
-        return {message:"Une erreur s'est produite !", status:"error", code:"code_invalid", error: error, success:false};
+    const verifMdp = await bcrypt.compare(data.mdp, user.rows[0].mdp);
+    if (!verifMdp) {
+      return {
+        message: "Mot de passe incorrect !",
+        status: "error",
+        code: "mdp_invalid",
+        success: false,
+      };
     }
-}
-
-export async function VerifEmail(data){
-    const verif_email = await pool.query("SELECT * FROM utilisateurs WHERE email = $1", [data.email]);
-    if(verif_email.rows.length > 0){
-        return {message:"Email deja existant !", status:"error", code:"email_used", success:false};
+    if (user.rows[0].etat === "inactif") {
+      return {
+        message: "Votre compte est inactif !",
+        status: "error",
+        code: "inactif",
+        success: false,
+      };
+    } else if (user.rows[0].etat === "en attente") {
+      return {
+        message: "Votre compte est en attente de validation !",
+        status: "en_attente",
+        code: "en_attente",
+        success: true,
+        data: user.rows[0],
+      };
     }
-    return {message:"Email disponible !", status:"success", code:"success", success:true};
-}
 
-export async function VerifPhone(data){
-    const verif_phone = await pool.query("SELECT * FROM utilisateurs WHERE phone = $1", [data.phone]);
-    if(verif_phone.rows.length > 0){
-        return {message:"Telephone deja existant !", status:"error", code:"phone_used", success:false};
+    if (user.rows[0].type == "second") {
+      const result = await pool.query(
+        "SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1",
+        [user.rows[0]?.userid],
+      );
+      return {
+        data: result.rows[0],
+        status: "success",
+        code: "success",
+        success: true,
+      };
     }
-    return {message:"Telephone disponible !", status:"success", code:"success", success:true};
+    return {
+      data: user.rows[0],
+      status: "success",
+      code: "success",
+      success: true,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      message: "Une erreur s'est produite !",
+      status: "error",
+      code: "",
+      error: error,
+      success: false,
+    };
+  }
 }
 
-export async function GetUtilisateur(req, res){
-    const {id} = req.params;
-    try {
-        const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, cu.designation AS role FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
-        if(result.rows.length === 0){
-            return res.status(404).json({message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false});
-        }
-        if(result.rows[0]?.type == "second"){
-            const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, cu.libelle AS role FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [id]);
-            return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});
-        }
-        return res.status(200).json({data: result.rows[0], status:"success", code:"success", success:true});
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({message:"Une erreur s'est produite !", status:"error", code:"error", error: error, success:false});
-    }
-}
-
-export function UpdateUtilisateur(data){
-    
-}
-
-export function DeleteUtilisateur(data){
-    
-}
-
-
-export async function getCategorieUtilisateurById(categorieutilisateurid){
-    try{
-        const result = await pool.query("SELECT * FROM categorieutilisateur WHERE categorieutilisateurid = $1", [categorieutilisateurid]);
-        console.log(categorieutilisateurid)
-        return {data: result.rows[0], status:"success", code:"success", success:true};
-    }catch(error){
-        console.log(error);
-        return {message:"Une erreur s'est produite !", status:"error", code:"", error: error, success:false};
-    }
-}
-
-export async function login(data){
-    try{
-        const user = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus, util.config AS config FROM utilisateurs util LEFT JOIN categorieutilisateur cu ON util.categorieutilisateurid=cu.categorieutilisateurid LEFT JOIN organisation og ON og.userid=util.userid WHERE (util.phone = $1 OR util.email = $1 OR util.username = $1)", [data.identifiant]);
-        if(user.rows.length === 0){
-            return {message:"Utilisateur introuvable !", status:"error", code:"user_not_found", success:false};
-        }
-        const verifMdp = await bcrypt.compare(data.mdp, user.rows[0].mdp);
-        if(!verifMdp){
-            return {message:"Mot de passe incorrect !", status:"error", code:"mdp_invalid", success:false};
-        }
-        if(user.rows[0].etat === "inactif"){
-            return {message:"Votre compte est inactif !", status:"error", code:"inactif", success:false};
-        }else if(user.rows[0].etat === "en attente"){
-            return {message:"Votre compte est en attente de validation !", status:"en_attente", code:"en_attente", success:true, data: user.rows[0]};
-        }
-
-        if(user.rows[0].type == "second"){
-            const result = await pool.query("SELECT *, util.userid AS userid, og.status AS ogStatus FROM utilisateurs util LEFT JOIN categorieutilisateurorg cu ON util.categorieutilisateurid=cu.categorieutilisateurorgid LEFT JOIN organisation og ON og.userid=util.userid WHERE util.userid = $1", [user.rows[0]?.userid]);
-            return {data: result.rows[0], status:"success", code:"success", success:true};
-        }
-        return {data: user.rows[0], status:"success", code:"success", success:true};
-    }catch(error){
-        console.log(error);
-        return {message:"Une erreur s'est produite !", status:"error", code:"", error: error, success:false};
-    }
-}
-
-function generateCode(){
-    return Math.floor(100000 + Math.random() * 900000);
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000);
 }
